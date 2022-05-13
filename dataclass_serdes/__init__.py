@@ -1,0 +1,1 @@
+from .serdes import from_dict
