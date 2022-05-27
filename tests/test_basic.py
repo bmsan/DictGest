@@ -1,10 +1,12 @@
+from typing import Annotated
 import pytest
 from dataclasses import dataclass
 from dataclass_serdes import from_dict
+from dataclass_serdes.serdes import Path
 
 def test_conversion():
     class A:
-        def __init__(self, a, b, c, d=1, e=2, f=3) -> None:
+        def __init__(self, a, b: int, c: list[tuple[int, dict]], d: Annotated[list[str], Path('/a/b/c')]=1, e=2, f=3) -> None:
             self.a = a
             self.b = b
             self.c = c 
