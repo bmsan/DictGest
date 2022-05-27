@@ -70,9 +70,9 @@ def convert_iterable(data, dtype, mappings):
 
 
 def convert(data: Any, dtype: types.GenericAlias, mappings: dict[type, Callable]=None):
-    if isinstance(data, dtype):
+    if type(dtype) == type and isinstance(data, dtype):
         return data
-    if dtype in mappings:
+    if mappings and dtype in mappings:
         return mappings[dtype](data)
     if type(dtype) == type: # base type
         return dtype(data)
@@ -82,7 +82,45 @@ def convert(data: Any, dtype: types.GenericAlias, mappings: dict[type, Callable]
             return convert_mapping(data, dtype, mappings)
         elif issubclass(origin, Iterable):
             return convert_iterable(data, dtype, mappings)
+
+if __name__ == '__main__':
+    r = convert(3.4, float)
+    print(r, type(r))
     
-convert(None, list[int])
-convert(None, list[tuple[dict[str, float]]])
-convert(None, dict[tuple[dict[str, float]]])
+    r = convert('3.4', float)
+    print(r, type(r))
+    r = convert(3.4, int)
+    print(r, type(r))
+ 
+    r = convert([3.4, '7', '8'], list[int])
+    print(r, type(r))
+  
+  
+    r = convert([3.4, '7', '8'], tuple[float, str, int])
+    print(r, type(r))
+  
+    r = convert([3.4, '7', '8'], set[str])
+    print(r, type(r))
+  
+    r = convert([   
+                 (1,2,3,'4'), 
+                 ('3.4', '5', 7.6, 9.2), 
+                 (('a', 'bc', 'de'), ['a', 'a', 'b', 'a'])
+                ], tuple[list[int], set[float], list[set[str]]])
+    print(r, type(r))
+   
+    r = convert({'aa' : '3.4', 4 : 6.5, 'bb': '1'}, dict[str, float])
+    print(r, type(r))
+        
+    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict[str,tuple])
+    print(r, type(r))
+   
+    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict[str,tuple[float]])
+    print(r, type(r))
+ 
+    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict)
+    print(r, type(r))
+          
+# convert(None, list[int])
+# convert(None, list[tuple[dict[str, float]]])
+# convert(None, dict[tuple[dict[str, float]]])
