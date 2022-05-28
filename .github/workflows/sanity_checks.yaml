@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: [3.10]
+        python-version: [3.10.4]
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
