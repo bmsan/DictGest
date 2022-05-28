@@ -1,3 +1,5 @@
+[![Code Coverage](https://codecov.io/gh/bmsan/dataclass-serdes/branch/master/graph/badge.svg)](https://codecov.io/gh/bmsan/dataclass-serdes)
+
 [![CI status](https://github.com/bmsan/dataclass-serdes/workflows/CI/badge.svg)](https://github.com/bmsan/dataclass-serdes/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
 ```python
 class Car:
