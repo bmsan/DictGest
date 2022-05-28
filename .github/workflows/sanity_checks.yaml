@@ -40,3 +40,11 @@ jobs:
       - name: Run unit tests
         run: |
           pytest 
+        if: always()
+      - name: Coverage 
+        run: |
+          poetry run pytest --cov=functional --cov-report=xml
+        if: always()
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
