@@ -5,11 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "Pytest",
             "type": "python",
             "request": "launch",
+            "env": {
+                "_PYTEST_RAISE": "1"
+            },
             "module": "pytest",
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }

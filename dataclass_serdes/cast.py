@@ -1,8 +1,13 @@
 import copy
-from multiprocessing.sharedctypes import Value
-from typing import Any, Callable, Iterable, Mapping, types
+import inspect
+from typing import Any, Callable, Iterable, Mapping, Protocol, runtime_checkable, types
 
-from numpy import isin
+from functools import partial
+
+@runtime_checkable
+class TypeCastable(Protocol):
+    def __typecast__():...
+    
 
 class Convertor:
     def __init__(self):
@@ -70,57 +75,26 @@ def convert_iterable(data, dtype, mappings):
 
 
 def convert(data: Any, dtype: types.GenericAlias, mappings: dict[type, Callable]=None):
+    if dtype in [None, inspect._empty]:
+        return data
     if type(dtype) == type and isinstance(data, dtype):
         return data
     if mappings and dtype in mappings:
         return mappings[dtype](data)
     if type(dtype) == type: # base type
-        return dtype(data)
+        if issubclass(dtype, TypeCastable):
+            return dtype.__typecast__(data, mappings)
+        else:
+            return dtype(data)
     elif type(dtype) == types.GenericAlias:
         origin = dtype.__origin__
         if issubclass(origin, Mapping):
+            if not isinstance(data, Mapping):
+                raise TypeError(f'Cannot convert from {type(data)} to : {dtype}')
             return convert_mapping(data, dtype, mappings)
         elif issubclass(origin, Iterable):
+            if not isinstance(data, Iterable):
+                raise TypeError(f'Cannot convert from {type(data)} to : {dtype}')
             return convert_iterable(data, dtype, mappings)
 
-if __name__ == '__main__':
-    r = convert(3.4, float)
-    print(r, type(r))
-    
-    r = convert('3.4', float)
-    print(r, type(r))
-    r = convert(3.4, int)
-    print(r, type(r))
- 
-    r = convert([3.4, '7', '8'], list[int])
-    print(r, type(r))
-  
-  
-    r = convert([3.4, '7', '8'], tuple[float, str, int])
-    print(r, type(r))
-  
-    r = convert([3.4, '7', '8'], set[str])
-    print(r, type(r))
-  
-    r = convert([   
-                 (1,2,3,'4'), 
-                 ('3.4', '5', 7.6, 9.2), 
-                 (('a', 'bc', 'de'), ['a', 'a', 'b', 'a'])
-                ], tuple[list[int], set[float], list[set[str]]])
-    print(r, type(r))
-   
-    r = convert({'aa' : '3.4', 4 : 6.5, 'bb': '1'}, dict[str, float])
-    print(r, type(r))
-        
-    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict[str,tuple])
-    print(r, type(r))
-   
-    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict[str,tuple[float]])
-    print(r, type(r))
- 
-    r = convert({'aa' : ['3.4'], 4 : [6.5], 'bb': ['1']}, dict)
-    print(r, type(r))
-          
-# convert(None, list[int])
-# convert(None, list[tuple[dict[str, float]]])
-# convert(None, dict[tuple[dict[str, float]]])
+

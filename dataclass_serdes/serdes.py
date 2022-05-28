@@ -1,17 +1,36 @@
 from datetime import datetime
 import inspect
-from typing import TypeVar
+from typing import TypeVar, types, _AnnotatedAlias
 from dataclasses import fields 
 from dateutil import parser as date_parser
+from .cast import convert
+from functools import partial
+
+def typecast(cls):
+    cls.__typecast__ = partial(from_dict, cls)
+    return cls
+
 
 T = TypeVar('T')
-def from_dict(target: type[T], data:dict) -> T:
+def from_dict(target: type[T], data:dict,  mappings=None, convert_types=True) -> T:
     """ Construct an object based on it's type 
         and on a keyword argument dictionary
     """
     params = inspect.signature(target).parameters
     kwargs = {}
     for name, prop in params.items():
+        anot = prop.annotation 
+        
+        dtype = None
+        if type(anot) in [type, types.GenericAlias]:
+            dtype = anot
+        elif type(anot) == _AnnotatedAlias:
+            dtype = anot.__origin__ 
+        # types.GenericAlias
+        # anot = prop.annotation
+        # __origin__
+        # __args__
+        
         _path = None
         if hasattr(prop.annotation, '__metadata__'):
             for meta in prop.annotation.__metadata__:
@@ -25,6 +44,8 @@ def from_dict(target: type[T], data:dict) -> T:
             val = data.get(name, prop.default)
         if val == inspect._empty:
             raise ValueError(f"Missing parameter {name}")
+        if convert_types:
+            val = convert(val, dtype, mappings)
         kwargs[name] = val
 
     return target(**kwargs)
@@ -87,6 +108,8 @@ class Path:
                     if part == '':
                         pass
                     else:
+                        if isinstance(data, int):
+                            print()
                         data = data[part]
         if self.extractor is not None:
             data = self.extractor(data)
