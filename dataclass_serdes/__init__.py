@@ -1,1 +1,2 @@
-from .serdes import from_dict
+from .serdes import from_dict, typecast
+from .cast import TypeCastable
