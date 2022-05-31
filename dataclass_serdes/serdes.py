@@ -1,18 +1,38 @@
 # from datetime import datetime
 import inspect
-from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias
+from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union
 
 # from dateutil import parser as date_parser
-from .cast import convert
+from .cast import convert, TypeCastable
 from functools import partial
+
+T = TypeVar("T", bound=type)
 
 
 def typecast(cls):
+    """
+    Decorates a python class(including dataclass)
+    to enable automatic type conversion.
+    Can be used as a class decorator
+
+    Examples
+    --------
+    It can be used as a class decorator
+
+    >>> @typecast
+    >>> class MyClass:
+    >>> ...
+
+    But also as a function call
+
+    >>> typecast(MyClass)
+
+    Returns
+    -------
+        The decorated class
+    """
     cls.__typecast__ = partial(from_dict, cls)
     return cls
-
-
-T = TypeVar("T", bound=type)
 
 
 def from_dict(target: type[T], data: dict, mappings=None, convert_types=True) -> T:
