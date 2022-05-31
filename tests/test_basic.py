@@ -1,8 +1,8 @@
 from typing import Annotated, Any, Protocol, runtime_checkable
 import pytest
 from dataclasses import dataclass
-from dataclass_serdes import from_dict, typecast
-from dataclass_serdes.serdes import Path
+from dictgest import from_dict, typecast
+from dictgest.serdes import Path
 
 
 def check_fields(obj, ref_dict):

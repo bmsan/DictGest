@@ -1,6 +1,6 @@
 from typing import Annotated
 import pytest
-from dataclass_serdes.cast import convert
+from dictgest.cast import convert
 
 
 def test_float():

@@ -1,4 +1,4 @@
-from dataclass_serdes import Path
+from dictgest import Path
 
 
 def test_basic():

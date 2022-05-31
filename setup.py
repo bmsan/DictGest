@@ -7,13 +7,11 @@ with open("requirements.txt", "r") as f:
     requirements = f.read().splitlines()
 
 setuptools.setup(
-    name="dataclass_serdes",
+    name="dictgest",
     version="0.0.1",
     author="bmsan",
     author_email="compressedsan@gmail.com",
-    description=(
-        "Dictionary to dataclass loading"
-    ),
+    description=("Dictionary to dataclass loading"),
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(exclude=("tests",)),
@@ -24,5 +22,5 @@ setuptools.setup(
     ],
     python_requires=">=3.8",
     install_requires=requirements,
-    url="https://github.com/bmsan/dataclass-serdes",
+    url="https://github.com/bmsan/DictGest",
 )

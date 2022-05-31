@@ -4,17 +4,17 @@ API Documentation
 API
 -----------
 
-.. automodule:: dataclass_serdes.cast
+.. automodule:: dictgest.cast
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: dataclass_serdes.serdes
+.. automodule:: dictgest.serdes
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: dataclass_serdes.serdes
+.. automodule:: dictgest.serdes
     :members:
     :private-members:
     :special-members:

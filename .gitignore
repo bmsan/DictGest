@@ -1,2 +1,3 @@
 *.pyc
-dataclass_serdes.egg-info
+docs/build
+dictgest.egg-info
