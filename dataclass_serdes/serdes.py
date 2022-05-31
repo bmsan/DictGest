@@ -1,8 +1,8 @@
-from datetime import datetime
+# from datetime import datetime
 import inspect
 from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias
-from dataclasses import fields
-from dateutil import parser as date_parser
+
+# from dateutil import parser as date_parser
 from .cast import convert
 from functools import partial
 
@@ -59,7 +59,7 @@ def set_common_fields(target: T, data: dict):
     and on a keyword argument dictionary
     """
     params = inspect.signature(target.__class__).parameters
-    for name, prop in params.items():
+    for name in params:
         if name in data:
             setattr(target, name, data[name])
 
@@ -74,12 +74,9 @@ def transfer_dc_fields(src: T, dst: S, allow_partial=False):
     src_params = inspect.signature(src.__class__).parameters
     dst_params = inspect.signature(dst.__class__).parameters
     for name in dst_params:
-        val = dst_params.get(name)
         if name not in src_params:
             if not allow_partial:
                 raise TypeError(f"Missing field {name} in {src}")
-            else:
-                continue
         setattr(src, name, getattr(dst, name))
 
 
@@ -130,44 +127,3 @@ class Path:
             return self.extract(data)
         except KeyError:
             return default
-
-
-# class DataClassInitMixin:
-#     def __post_init__(self):
-#         for field in fields(self):
-#             if hasattr(field.type, '__origin__'):
-#                 if field.type.__origin__ == list:
-#                     args = field.type.__args__
-#                     if len(args) == 1:
-#                         contained_type = args[0]
-#                         vals = getattr(self, field.name)
-#                         for idx, item in enumerate(vals):
-#                             if type(item) != contained_type and type(item) == dict:
-#                                 vals[idx] = from_dict(contained_type, item)
-#                 else:
-#                     vals = getattr(self, field.name)
-#                     contained_type = field.type.__origin__
-#                     if type(vals) == dict:
-#                         if contained_type != dict:
-#                             setattr(self, field.name, from_dict(contained_type, vals))
-#                     elif type(vals) == str and contained_type != str:
-#                         if contained_type == datetime:
-#                             vals = date_parser.parse(vals)
-#                         else:
-#                             vals = contained_type(vals)
-#                         setattr(self, field.name, vals)
-#                     elif type(vals) == float and contained_type == datetime:
-#                         vals = datetime.fromtimestamp(vals)
-#                         setattr(self, field.name, vals)
-#             else:
-#                 contained_type = field.type
-#                 vals = getattr(self, field.name)
-#                 if type(vals) == dict:
-#                     if contained_type != dict:
-#                         setattr(self, field.name, from_dict(contained_type, vals))
-#                 elif type(vals) == str and contained_type != str:
-#                     if contained_type == datetime:
-#                         vals = date_parser.parse(vals)
-#                     else:
-#                         vals = contained_type(vals)
-#                     setattr(self, field.name, vals)

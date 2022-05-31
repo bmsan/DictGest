@@ -16,6 +16,7 @@ T = TypeVar("T", bound=type)
 
 TypeConstructorMap = dict[type[T], Callable[[Any], T]]
 
+
 @runtime_checkable
 class TypeCastable(Protocol):
     @staticmethod
@@ -51,7 +52,7 @@ def convert_mapping(data, dtype, mappings):
     # 3. Fallback to dictionary
     try:
         res = origin()
-    except Exception as e:
+    except Exception:
         if isinstance(data, origin):
             res = copy.copy(data)
         else:
@@ -99,19 +100,18 @@ def convert(
     if type(dtype) == type:  # base type
         if issubclass(dtype, TypeCastable):
             return dtype.__typecast__(data, mappings)
-        else:
-            return dtype(data)
+        return dtype(data)
     elif type(dtype) == types.GenericAlias:
         origin = dtype.__origin__
         if issubclass(origin, Mapping):
             if not isinstance(data, Mapping):
                 raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
             return convert_mapping(data, dtype, mappings)
-        elif issubclass(origin, Iterable):
+        if issubclass(origin, Iterable):
             if not isinstance(data, Iterable):
                 raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
             return convert_iterable(data, dtype, mappings)
         else:
-            raise ValueError(f'{origin}')
+            raise ValueError(f"{origin}")
     else:
-        raise ValueError(f'{type(dtype)}, {dtype}')
+        raise ValueError(f"{type(dtype)}, {dtype}")
