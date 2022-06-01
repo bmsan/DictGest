@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="dictgest",
-    version="0.0.1",
+    version="0.0.2",
     author="bmsan",
     author_email="compressedsan@gmail.com",
     description=("Advanced dictionary ingestion into python objects"),

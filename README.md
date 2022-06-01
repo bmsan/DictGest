@@ -16,73 +16,65 @@ over the received data structure/format.
 
 # Examples
 
-## Trivial Example
+## Example 1: Trivial Example
 The first most basic and trivial example is ingesting a dictionary that has extra data not of interest
 
-![](./docs/source/ex1.png)
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex1.png?raw=true)
 
 ```python
 car = from_dict(Car, dict_data)
 ```
 
 ## Example 2: Data mapping renaming & rerouting
-![](./docs/source/ex2.png)
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex2.png?raw=true)
+
+```python
+article = from_dict(Article, news_api_data)
+meta = from_dict(ArticleMeta, news_api_data)
+stats = from_dict(ArticleStats, news_api_data)
+```
 
 The full working example can be found in the [examples folder](examples/news_example.py)
-```python
 
 
-  'year': 2022
-  'color': 'red',
-  'steering_side': 'right',
-  'completed_by': 'H.O. Ward',
-  'completed_at': '2022/02/02'
-})
-            }
+## Example 3: Data type enforcing
 
-class Car:
-    def __init__(self, 
-                name, 
-                year,
-                color, 
-                num_seats=4, 
-                steering_side='left'):
-        ...
-
-@dataclass
-class Car:
-  name: str
-  year: int
-  color: str
-  num_seats:int=4
-  steering_size:str='left'
+Sometimes the data coming from external sources might have different datatypes than what we desire. `dictgen` can do type conversion for you.
 
 
-car = from_dict(Car, dict_data)
-
-
-
-// Location Mapping
-
-@typecheck
+```py
 @typecast
 @dataclass
-class ArticleV3:
-  # This will be extracted from the author field
-  author: str
-  # headline renamed to title
-  title:  Annotated[str, Path('headline')]  
-  # different path + rename
-  description: Annotated[str, Path('content/shortVersion')]
-  # Transform the data 
-  total_votes: Annotated[str, Path('stats', extractor=compute_votes)]
+class Measurment:
+    temp: float
+    humidity: float
 
 
-def compute_votes(stats: dict):
-  return stats['pozitive_votes'] + stats['negative_votes']
+@typecast
+class Sensor:
+    def __init__(
+        self, name: str, location: str, uptime: float, readings: list[Measurment]
+    ):
+        self.name = name
+        self.location = location
+        self.uptime = uptime
+        self.readings = readings
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+```
+
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex3.png?raw=true)
+
+The conversions shown above were enabled by setting the `@typecast` decorator for the targetted classes.
+
+The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/typeconvert_example.py)
 
 
-....
-@typeconvert
 
-````
+## Installing 
+
+```
+pip install dictgest
+```
