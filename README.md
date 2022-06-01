@@ -1,6 +1,6 @@
-[![Code Coverage](https://codecov.io/gh/bmsan/dataclass-serdes/branch/master/graph/badge.svg)](https://codecov.io/gh/bmsan/dataclass-serdes)
+[![Code Coverage](https://codecov.io/gh/bmsan/dictgest/branch/main/graph/badge.svg)](https://codecov.io/gh/bmsan/dictgest)
 
-[![CI status](https://github.com/bmsan/dataclass-serdes/workflows/CI/badge.svg)](https://github.com/bmsan/dataclass-serdes/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
+[![CI status](https://github.com/bmsan/dictgest/workflows/CI/badge.svg)](https://github.com/bmsan/dictgest/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
 ```python
 class Car:
     def __init__(self, name, year,
