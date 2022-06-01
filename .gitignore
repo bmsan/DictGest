@@ -1,3 +1,4 @@
 *.pyc
 docs/build
 dictgest.egg-info
+dist
