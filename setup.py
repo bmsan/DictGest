@@ -8,10 +8,10 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="dictgest",
-    version="0.0.1",
+    version="0.0.2",
     author="bmsan",
     author_email="compressedsan@gmail.com",
-    description=("Dictionary to dataclass loading"),
+    description=("Advanced dictionary ingestion into python objects"),
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(exclude=("tests",)),
