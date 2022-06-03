@@ -1,0 +1,4 @@
+Sphinx==4.5.0
+recommonmark==0.7.1
+myst-parser==0.17.2
+sphinx_markdown_builder==0.5.5
