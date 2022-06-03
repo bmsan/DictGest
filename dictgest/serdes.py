@@ -100,23 +100,25 @@ def flatten(data: list):
 
 
 class Path:
-    """
-    Data type annotation for class attributes that can signal:
-    - renaming: maping a dictionary field to an attribute with a different name
-    - rerouting: mapping a nested dictionary field to a class attribute
-    - Setting a default data converter for the field
-    It is used in conjunction with Pythons Typing.Annotated functionality
-    ```
-    class Model:
-        def __init__(self,
-                     // the module will extract the 'field1' key
-                     field1,
-                     // the module will extract the 'name' key
-                     field2 : Annotated[str, Path('name')]
-                     // the module will extract the ['p1']['p2']['val'] field
-                     field3 : Annotated[str, Path('p1/p2/val')]
-                    )
-    ```
+    """Data type annotation for class attributes that can signal:
+      - renaming: maping a dictionary field to an attribute with a different name
+      - rerouting: mapping a nested dictionary field to a class attribute
+      - Setting a default data converter for the field
+
+    Its is used in conjunction with Pythons ``Typing.Annotated`` functionality
+
+    .. code-block:: python
+
+        class Model:
+            def __init__(self,
+                        // the module will extract the 'field1' key
+                        field1,
+                        // the module will extract the 'name' key
+                        field2 : Annotated[str, Path('name')]
+                        // the module will extract the ['p1']['p2']['val'] field
+                        field3 : Annotated[str, Path('p1/p2/val')]
+                        )
+
     """
 
     def __init__(self, path: str, extractor: Callable = None, flatten_en=True) -> None:

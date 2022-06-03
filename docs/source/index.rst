@@ -12,7 +12,7 @@ Welcome to DictGest's documentation!
    
    README.md
    api
-
+    
 Indices and tables
 ==================
 
