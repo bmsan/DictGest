@@ -14,31 +14,54 @@ from typing import (
 
 T = TypeVar("T", bound=type)
 
-TypeConstructorMap = dict[type[T], Callable[[Any], T]]
+TypeConstructorMap = Mapping[type[T], Callable[[Any], T]]
+TypeConvertor = Callable[[Any], T]
 
 
 @runtime_checkable
 class TypeCastable(Protocol):
+    """Runtime checkable protocol for classes that need type conversion.
+    Classes can be decorated as TypeCastable using @typecast decorator
+    """
+
     @staticmethod
     def __typecast__(data: dict[str, Any], mapping: Optional[TypeConstructorMap]):
         ...
 
 
 class Convertor:
-    def __init__(self):
-        self.mappings = {}
+    """
+    Used to convert data to certain datatypes.
+    Conversion mappings need to be registered using the `register` method
+    """
 
-    def register(self, dtype: type, converter: Callable):
+    def __init__(self):
+        self.mappings: dict[type, TypeConvertor] = {}
+
+    def register(self, dtype: T, converter: TypeConvertor[T]):
+        """Registers a convertor for a data type
+
+        Parameters
+        ----------
+        dtype
+            Data type for which to use convertor
+        converter
+            Callable capable of converting data to dtype
+        """
+
         self.mappings[dtype] = converter
 
-    def convert(self, data, dtype: type):
+    def convert(self, data, dtype: T) -> T:
+        """Converts the data to the dtype. It will try to a registered convertor.
+        If there wasn't registered any converter it will fallback to a default conversion.
+        """
         if dtype in self.mappings:
             return self.mappings[dtype](data)
 
         return convert(data, dtype)
 
 
-def convert_mapping(data, dtype, mappings):
+def convert_mapping(data, dtype, mappings: Convertor):
     origin = dtype.__origin__
     if not issubclass(origin, Mapping):
         raise ValueError()
@@ -67,7 +90,7 @@ def convert_mapping(data, dtype, mappings):
     return res
 
 
-def convert_iterable(data, dtype, mappings):
+def convert_iterable(data, dtype: types.GenericAlias, mappings: Convertor):
     origin = dtype.__origin__
     if not issubclass(origin, Iterable):
         raise ValueError()
@@ -89,28 +112,44 @@ def convert_iterable(data, dtype, mappings):
 
 
 def convert(
-    data: Any, dtype: Optional[type[T]], mappings: TypeConstructorMap = None
+    data: Any, dtype: Optional[type[T]], type_mappings: TypeConstructorMap = None
 ) -> T:
+    """Converts a data value to a specified data type.
+
+    Parameters
+    ----------
+    data
+        Data to be converted
+    dtype
+        Type to convert
+    type_mappings, optional
+        predefined convertor map for certain data types
+
+    Returns
+    -------
+        The converted datatype
+    """
     if dtype in [None, inspect._empty]:
-        return data
+        return data  # no datatype was specified
     if type(dtype) == type and isinstance(data, dtype):
-        return data
-    if mappings and dtype in mappings:
-        return mappings[dtype](data)
+        return data  # already the right type
+    if type_mappings and dtype in type_mappings:
+        return type_mappings[dtype](data)
     if type(dtype) == type:  # base type
         if issubclass(dtype, TypeCastable):
-            return dtype.__typecast__(data, mappings)
-        return dtype(data)
+            # Type has been decorated with the @typecast decorator
+            return dtype.__typecast__(data, type_mappings)
+        return dtype(data)  # try default conversion
     elif type(dtype) == types.GenericAlias:
         origin = dtype.__origin__
         if issubclass(origin, Mapping):
             if not isinstance(data, Mapping):
                 raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-            return convert_mapping(data, dtype, mappings)
+            return convert_mapping(data, dtype, type_mappings)
         if issubclass(origin, Iterable):
             if not isinstance(data, Iterable):
                 raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-            return convert_iterable(data, dtype, mappings)
+            return convert_iterable(data, dtype, type_mappings)
         else:
             raise ValueError(f"{origin}")
     else:

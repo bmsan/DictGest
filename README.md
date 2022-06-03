@@ -2,6 +2,9 @@
 
 [![Code Coverage](https://codecov.io/gh/bmsan/dictgest/branch/main/graph/badge.svg)](https://codecov.io/gh/bmsan/dictgest)
 [![CI status](https://github.com/bmsan/dictgest/workflows/CI/badge.svg)](https://github.com/bmsan/dictgest/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
+[![Docs](https://readthedocs.org/projects/dictgest/badge/?version=latest)](https://readthedocs.org/projects/dictgest)
+
+[![Discord](https://img.shields.io/discord/981859018836426752?label=Discord%20chat&style=flat)](https://discord.gg/yBb99rxBUZ)
 
 # Description
 
@@ -34,7 +37,7 @@ meta = from_dict(ArticleMeta, news_api_data)
 stats = from_dict(ArticleStats, news_api_data)
 ```
 
-The full working example can be found in the [examples folder](examples/news_example.py)
+The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_example.py)
 
 
 ## Example 3: Data type enforcing
