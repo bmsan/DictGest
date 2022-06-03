@@ -9,9 +9,10 @@ Welcome to DictGest's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   README.md
    api
-
+    
 Indices and tables
 ==================
 

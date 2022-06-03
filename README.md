@@ -2,6 +2,8 @@
 
 [![Code Coverage](https://codecov.io/gh/bmsan/dictgest/branch/main/graph/badge.svg)](https://codecov.io/gh/bmsan/dictgest)
 [![CI status](https://github.com/bmsan/dictgest/workflows/CI/badge.svg)](https://github.com/bmsan/dictgest/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
+[![Docs](https://readthedocs.org/projects/dictgest/badge/?version=latest)](https://readthedocs.org/projects/dictgest)
+[![Discord](https://img.shields.io/discord/981859018836426752?label=Discord%20chat&style=flat)](https://discord.gg/yBb99rxBUZ)
 
 # Description
 
@@ -19,6 +21,10 @@ over the received data structure/format.
 ## Example 1: Trivial Example
 The first most basic and trivial example is ingesting a dictionary that has extra data not of interest
 
+```python
+from dictgest import from_dict
+```
+
 ![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex1.png?raw=true)
 
 ```python
@@ -26,6 +32,14 @@ car = from_dict(Car, dict_data)
 ```
 
 ## Example 2: Data mapping renaming & rerouting
+
+```python
+from typing import Annotated
+from dataclasses import dataclass
+from dictgest import from_dict, Path
+```
+
+
 ![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex2.png?raw=true)
 
 ```python
@@ -34,7 +48,7 @@ meta = from_dict(ArticleMeta, news_api_data)
 stats = from_dict(ArticleStats, news_api_data)
 ```
 
-The full working example can be found in the [examples folder](examples/news_example.py)
+The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_example.py)
 
 
 ## Example 3: Data type enforcing
@@ -42,27 +56,24 @@ The full working example can be found in the [examples folder](examples/news_exa
 Sometimes the data coming from external sources might have different datatypes than what we desire. `dictgen` can do type conversion for you.
 
 
+
 ```py
-@typecast
-@dataclass
+from dataclasses import dataclass
+from dictgest import from_dict, typecast 
+
+@typecast # Makes the class type convertable
+@dataclass # The dataclass is just an example, it could have an normal class
 class Measurment:
     temp: float
     humidity: float
 
 
-@typecast
+@typecast # Makes the class type convertable
 class Sensor:
     def __init__(
         self, name: str, location: str, uptime: float, readings: list[Measurment]
     ):
-        self.name = name
-        self.location = location
-        self.uptime = uptime
-        self.readings = readings
-
-    def __repr__(self):
-        return str(self.__dict__)
-
+        ...
 ```
 
 ![](https://github.com/bmsan/DictGest/blob/main/docs/source/ex3.png?raw=true)

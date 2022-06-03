@@ -1,22 +1,24 @@
-API Documentation
+Documentation
 =================
 
 API
 -----------
 
+.. automodule:: dictgest
+    :members:
+    :show-inheritance:
+
+Internal Documentation
+-----------------------
+
 .. automodule:: dictgest.cast
     :members:
-    :undoc-members:
     :show-inheritance:
 
 .. automodule:: dictgest.serdes
     :members:
-    :undoc-members:
     :show-inheritance:
 
-.. automodule:: dictgest.serdes
-    :members:
-    :private-members:
-    :special-members:
-    :undoc-members:
-    :show-inheritance:
+
+
+

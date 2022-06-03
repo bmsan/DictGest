@@ -2,3 +2,5 @@
 docs/build
 dictgest.egg-info
 dist
+docs/source/build
+docs/source/_build

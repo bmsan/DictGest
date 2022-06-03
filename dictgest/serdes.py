@@ -3,7 +3,7 @@ import inspect
 from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union
 
 # from dateutil import parser as date_parser
-from .cast import convert, TypeCastable
+from .cast import Convertor, convert, TypeCastable
 from functools import partial
 
 T = TypeVar("T", bound=type)
@@ -35,9 +35,29 @@ def typecast(cls):
     return cls
 
 
-def from_dict(target: type[T], data: dict, mappings=None, convert_types=True) -> T:
-    """Construct an object based on it's type
-    and on a keyword argument dictionary
+def from_dict(
+    target: type[T],
+    data: dict,
+    type_mappings: Convertor = None,
+    convert_types: bool = True,
+) -> T:
+    """Converts a dictionary to the desired target type.
+
+    Parameters
+    ----------
+    target
+        Target conversion type
+    data
+        dictionary data to be converted to target type
+    type_mappings, optional
+        custom conversion mapping for datatypess, by default None
+    convert_types, optional
+        if target fields should be converted to typing hint types.
+
+    Returns
+    -------
+        The converted datatype
+
     """
     params = inspect.signature(target).parameters
     kwargs = {}
@@ -49,10 +69,6 @@ def from_dict(target: type[T], data: dict, mappings=None, convert_types=True) ->
             dtype = anot
         elif type(anot) == _AnnotatedAlias:
             dtype = anot.__origin__
-        # types.GenericAlias
-        # anot = prop.annotation
-        # __origin__
-        # __args__
 
         _path = None
         if hasattr(prop.annotation, "__metadata__"):
@@ -68,36 +84,10 @@ def from_dict(target: type[T], data: dict, mappings=None, convert_types=True) ->
         if val == inspect._empty:
             raise ValueError(f"Missing parameter {name}")
         if convert_types:
-            val = convert(val, dtype, mappings)
+            val = convert(val, dtype, type_mappings)
         kwargs[name] = val
 
     return target(**kwargs)
-
-
-def set_common_fields(target: T, data: dict):
-    """Construct an object based on it's type
-    and on a keyword argument dictionary
-    """
-    params = inspect.signature(target.__class__).parameters
-    for name in params:
-        if name in data:
-            setattr(target, name, data[name])
-
-
-S = TypeVar("S")
-
-
-def transfer_dc_fields(src: T, dst: S, allow_partial=False):
-    """Construct an object based on it's type
-    and on a keyword argument dictionary
-    """
-    src_params = inspect.signature(src.__class__).parameters
-    dst_params = inspect.signature(dst.__class__).parameters
-    for name in dst_params:
-        if name not in src_params:
-            if not allow_partial:
-                raise TypeError(f"Missing field {name} in {src}")
-        setattr(src, name, getattr(dst, name))
 
 
 def flatten(data: list):
@@ -110,7 +100,48 @@ def flatten(data: list):
 
 
 class Path:
+    """Data type annotation for class attributes that can signal:
+      - renaming: maping a dictionary field to an attribute with a different name
+      - rerouting: mapping a nested dictionary field to a class attribute
+      - Setting a default data converter for the field
+
+    Its is used in conjunction with Pythons ``Typing.Annotated`` functionality
+
+    .. code-block:: python
+
+        class Model:
+            def __init__(self,
+                        // the module will extract the 'field1' key
+                        field1,
+                        // the module will extract the 'name' key
+                        field2 : Annotated[str, Path('name')]
+                        // the module will extract the ['p1']['p2']['val'] field
+                        field3 : Annotated[str, Path('p1/p2/val')]
+                        )
+
+    """
+
     def __init__(self, path: str, extractor: Callable = None, flatten_en=True) -> None:
+        """
+
+        Parameters
+        ----------
+        path
+            Extraction path(key/keys) from dictionary.
+            Eg: path='name1' will map the annotated field to a dictionary key 'name1'
+            Eg: path='p1/p2/name2' will map the annotated field to nested_data['p1']['p2']['name2']
+        extractor, optional
+            Callable to extract/convert the data from the specified path, by default None
+        flatten_en, optional
+            In case the path contains an element which is a list, flatten it's elements
+
+            Eg: data = {'a': [
+                              [{'b': 1}, {'b': 2}],
+                              [{'b': 3}]
+                            ]}
+            path='a/b' with flatten_en would result in the extraction of [1, 2, 3]
+        """
+
         self.path = path
         self.parts = path.split("/")
         self.extractor = extractor
