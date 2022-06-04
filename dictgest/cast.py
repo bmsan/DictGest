@@ -14,7 +14,7 @@ from typing import (
 
 T = TypeVar("T", bound=type)
 
-TypeConstructorMap = Mapping[type[T], Callable[[Any], T]]
+TypeConverterMap = Mapping[type[T], Callable[[Any], T]]
 TypeConvertor = Callable[[Any], T]
 
 
@@ -25,43 +25,11 @@ class TypeCastable(Protocol):
     """
 
     @staticmethod
-    def __typecast__(data: dict[str, Any], mapping: Optional[TypeConstructorMap]):
+    def __typecast__(data: dict[str, Any], mapping: Optional[TypeConverterMap]):
         ...
 
 
-class Convertor:
-    """
-    Used to convert data to certain datatypes.
-    Conversion mappings need to be registered using the `register` method
-    """
-
-    def __init__(self):
-        self.mappings: dict[type, TypeConvertor] = {}
-
-    def register(self, dtype: T, converter: TypeConvertor[T]):
-        """Registers a convertor for a data type
-
-        Parameters
-        ----------
-        dtype
-            Data type for which to use convertor
-        converter
-            Callable capable of converting data to dtype
-        """
-
-        self.mappings[dtype] = converter
-
-    def convert(self, data, dtype: T) -> T:
-        """Converts the data to the dtype. It will try to a registered convertor.
-        If there wasn't registered any converter it will fallback to a default conversion.
-        """
-        if dtype in self.mappings:
-            return self.mappings[dtype](data)
-
-        return convert(data, dtype)
-
-
-def convert_mapping(data, dtype, mappings: Convertor):
+def convert_mapping(data, dtype, mappings: TypeConverterMap):
     origin = dtype.__origin__
     if not issubclass(origin, Mapping):
         raise ValueError()
@@ -90,7 +58,7 @@ def convert_mapping(data, dtype, mappings: Convertor):
     return res
 
 
-def convert_iterable(data, dtype: types.GenericAlias, mappings: Convertor):
+def convert_iterable(data, dtype: types.GenericAlias, mappings: TypeConverterMap):
     origin = dtype.__origin__
     if not issubclass(origin, Iterable):
         raise ValueError()
@@ -112,7 +80,7 @@ def convert_iterable(data, dtype: types.GenericAlias, mappings: Convertor):
 
 
 def convert(
-    data: Any, dtype: Optional[type[T]], type_mappings: TypeConstructorMap = None
+    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap = None
 ) -> T:
     """Converts a data value to a specified data type.
 
