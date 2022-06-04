@@ -3,8 +3,9 @@ import inspect
 from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union
 
 # from dateutil import parser as date_parser
-from .cast import Convertor, convert, TypeCastable
+from .cast import TypeConverterMap, convert, TypeCastable
 from functools import partial
+from .converter import default_convertor
 
 T = TypeVar("T", bound=type)
 
@@ -38,7 +39,7 @@ def typecast(cls):
 def from_dict(
     target: type[T],
     data: dict,
-    type_mappings: Convertor = None,
+    type_mappings: TypeConverterMap = default_convertor,
     convert_types: bool = True,
 ) -> T:
     """Converts a dictionary to the desired target type.
