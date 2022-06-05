@@ -37,9 +37,13 @@ jobs:
         run: |
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Run unit tests
+      - name: run unit tests
         run: |
           pytest
+        if: always()
+      - name: run mypy static types check
+        run: |
+          mypy dictgest/*.py
         if: always()
       - name: Coverage
         run: |
