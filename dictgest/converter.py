@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 from dateutil import parser as date_parser
 
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
 
 
 class Convertor(Mapping):
@@ -17,7 +17,7 @@ class Convertor(Mapping):
     def __init__(self):
         self.mappings: dict[type, TypeConvertor] = {}
 
-    def register(self, dtype: T, converter: TypeConvertor[T]):
+    def register(self, dtype: type[T], converter: TypeConvertor[T]):
         """Registers a convertor for a data type
 
         Parameters
@@ -30,7 +30,7 @@ class Convertor(Mapping):
 
         self.mappings[dtype] = converter
 
-    def convert(self, data, dtype: T) -> T:
+    def convert(self, data, dtype: type[T]) -> T:
         """Converts the data to the dtype. It will try to a registered convertor.
         If there wasn't registered any converter it will fallback to a default conversion.
         """

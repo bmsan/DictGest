@@ -1,6 +1,6 @@
 # from datetime import datetime
 import inspect
-from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union
+from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union  # type: ignore
 
 # from dateutil import parser as date_parser
 from .cast import TypeConverterMap, convert, TypeCastable
@@ -88,7 +88,7 @@ def from_dict(
             val = convert(val, dtype, type_mappings)
         kwargs[name] = val
 
-    return target(**kwargs)
+    return target(**kwargs)  # type: ignore
 
 
 def flatten(data: list):

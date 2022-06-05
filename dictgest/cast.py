@@ -1,6 +1,6 @@
 import copy
 import inspect
-from typing import (
+from typing import (  # type: ignore
     Any,
     Callable,
     Iterable,
@@ -12,7 +12,7 @@ from typing import (
     types,
 )
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
 
 TypeConverterMap = Mapping[type[T], Callable[[Any], T]]
 TypeConvertor = Callable[[Any], T]
@@ -29,7 +29,7 @@ class TypeCastable(Protocol):
         ...
 
 
-def convert_mapping(data, dtype, mappings: TypeConverterMap):
+def convert_mapping(data, dtype: type[T], mappings: TypeConverterMap[T]) -> T:
     origin = dtype.__origin__
     if not issubclass(origin, Mapping):
         raise ValueError()
@@ -65,7 +65,7 @@ def convert_iterable(data, dtype: types.GenericAlias, mappings: TypeConverterMap
 
     args = dtype.__args__
 
-    elements = []
+    elements: list[Any] = []
     if len(args) == 1:
         for el in data:
             elements.append(convert(el, args[0], mappings))
@@ -80,7 +80,7 @@ def convert_iterable(data, dtype: types.GenericAlias, mappings: TypeConverterMap
 
 
 def convert(
-    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap = None
+    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap[T] = None
 ) -> T:
     """Converts a data value to a specified data type.
 
@@ -97,7 +97,7 @@ def convert(
     -------
         The converted datatype
     """
-    if dtype in [None, inspect._empty]:
+    if dtype is None or dtype is inspect._empty:
         return data  # no datatype was specified
     if type(dtype) == type and isinstance(data, dtype):
         return data  # already the right type
