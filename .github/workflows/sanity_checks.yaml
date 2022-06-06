@@ -44,7 +44,8 @@ jobs:
         if: always()
       - name: run mypy static types check
         run: |
-          mypy --install-types dictgest/*.py
+          mypy --install-types --non-interactive dictgest/*.py
+
         if: always()
       - name: Coverage
         run: |
