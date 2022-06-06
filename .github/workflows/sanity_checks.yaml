@@ -38,17 +38,13 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
 
-      - name: Install mypy dependencies
-        run: |
-          mypy --install-types
-
       - name: run unit tests
         run: |
           pytest
         if: always()
       - name: run mypy static types check
         run: |
-          mypy dictgest/*.py
+          mypy --install-types dictgest/*.py
         if: always()
       - name: Coverage
         run: |
