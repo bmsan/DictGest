@@ -37,6 +37,11 @@ jobs:
         run: |
           pip install -r requirements-dev.txt
           pip install -e .
+
+      - name: Install mypy dependencies
+        run: |
+          mypy --install-types
+
       - name: run unit tests
         run: |
           pytest
