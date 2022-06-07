@@ -1,5 +1,13 @@
 import inspect
-from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias  # type: ignore
+from typing import (  # type: ignore
+    Any,
+    Callable,
+    Iterable,
+    Optional,
+    TypeVar,
+    types,
+    _AnnotatedAlias,
+)  # type: ignore
 from functools import partial
 
 from .cast import TypeConverterMap, convert
@@ -95,7 +103,7 @@ def from_dict(
     return target(**kwargs)  # type: ignore
 
 
-def flatten(data: list):
+def flatten(data: list) -> list:
     """Flatten a nested list
     Eg: [[a, b, c], [d, e]] => [a, b, c, d, e]
 
@@ -156,6 +164,21 @@ class Path:
         self.extractor = extractor
         self.flatten_en = flatten_en
 
+    @staticmethod
+    def _wildcard_extract(data: Iterable, part: str):
+        if not isinstance(data, (list, tuple)):
+            raise TypeError()
+        if "{" in part:
+            name, val = part.split("{", 1)[1].split("}", 1)[0].split("=")
+            data = [el for el in data if name in el and str(el[name]) == val]
+        return data
+
+    def _iterable_extract(self, data: Iterable, part: str) -> list:
+        data = [o[part] for o in data if part in o]
+        if self.flatten_en:
+            data = flatten(data)
+        return data
+
     def extract(self, data: dict[str, Any]):
         """Extract element from dictionary data from the configured path.
 
@@ -172,22 +195,12 @@ class Path:
         for part in self.parts:
 
             if part.startswith("*"):
-                if not isinstance(data, (list, tuple)):
-                    raise TypeError()
-                if "{" in part:
-                    name, val = part.split("{", 1)[1].split("}", 1)[0].split("=")
-                    data = [el for el in data if name in el and str(el[name]) == val]
-            else:
-                if isinstance(data, (list, tuple)):
-                    data = [o[part] for o in data if part in o]
-                    if self.flatten_en:
-                        data = flatten(data)
+                data = Path._wildcard_extract(data, part)
+            elif isinstance(data, (list, tuple)):
+                data = self._iterable_extract(data, part)
 
-                else:
-                    if part == "":
-                        pass
-                    else:
-                        data = data[part]
+            elif part != "":
+                data = data[part]
         if self.extractor is not None:
             data = self.extractor(data)
         return data
