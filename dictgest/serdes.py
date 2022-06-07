@@ -2,7 +2,6 @@ import inspect
 from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias  # type: ignore
 from functools import partial
 
-# from dateutil import parser as date_parser
 from .cast import TypeConverterMap, convert
 from .converter import default_convertor
 
@@ -35,6 +34,25 @@ def typecast(cls):
     return cls
 
 
+def _get_dtype_from_anot(anot) -> Optional[type]:
+    dtype: Optional[type] = None
+    if type(anot) in [type, types.GenericAlias]:
+        dtype = anot
+    elif type(anot) == _AnnotatedAlias:
+        dtype = anot.__origin__
+    return dtype
+
+
+def _get_path_from_anot(anot):
+    _path = None
+    if hasattr(anot, "__metadata__"):
+        for meta in anot.__metadata__:
+            if isinstance(meta, Path):
+                _path = meta
+                break
+    return _path
+
+
 def from_dict(
     target: type[T],
     data: dict,
@@ -65,19 +83,8 @@ def from_dict(
     for name, prop in params.items():
         anot = prop.annotation
 
-        dtype: Optional[type] = None
-        if type(anot) in [type, types.GenericAlias]:
-            dtype = anot
-        elif type(anot) == _AnnotatedAlias:
-            dtype = anot.__origin__
-
-        _path = None
-        if hasattr(prop.annotation, "__metadata__"):
-            for meta in prop.annotation.__metadata__:
-                if isinstance(meta, Path):
-                    _path = meta
-                    break
-
+        dtype = _get_dtype_from_anot(anot)
+        _path = _get_path_from_anot(anot)
         val = _path.get(data, prop.default) if _path else data.get(name, prop.default)
         if val == empty:
             raise ValueError(f"Missing parameter {name}")
