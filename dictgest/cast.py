@@ -36,9 +36,9 @@ class TypeCastable(Protocol):
 
 def convert_mapping(
     data: Mapping,
-    dtype: type[M],
-    mappings: TypeConverterMap[M] = None,
-) -> M:
+    dtype: type[T],
+    mappings: TypeConverterMap[T] = None,
+) -> T:
     """Convert data to sepcified Mapping Annotated type
 
     Parameters
@@ -82,7 +82,7 @@ def convert_mapping(
         key = convert(key, key_type, mappings)
         val = convert(val, val_type, mappings)
         res[key] = val
-    return cast(M, res)
+    return cast(T, res)
 
 
 def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None) -> T:
