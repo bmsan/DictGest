@@ -59,6 +59,7 @@ def from_dict(
         The converted datatype
 
     """
+    empty = inspect.Parameter.empty
     params = inspect.signature(target).parameters
     kwargs = {}
     for name, prop in params.items():
@@ -77,11 +78,8 @@ def from_dict(
                     _path = meta
                     break
 
-        if _path:
-            val = _path.get(data, prop.default)
-        else:
-            val = data.get(name, prop.default)
-        if val == inspect._empty:
+        val = _path.get(data, prop.default) if _path else data.get(name, prop.default)
+        if val == empty:
             raise ValueError(f"Missing parameter {name}")
         if convert_types:
             val = convert(val, dtype, type_mappings)

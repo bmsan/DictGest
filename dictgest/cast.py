@@ -75,7 +75,7 @@ def convert_mapping(
     # res: Mapping = {}
     try:
         res = origin()
-    except Exception:
+    except (TypeError, ValueError):
         res = copy.copy(data) if isinstance(data, origin) else {}
     key_type, val_type = args
     for key, val in data.items():
@@ -86,6 +86,21 @@ def convert_mapping(
 
 
 def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None) -> T:
+    """Convert data according to the annotated Iterable datatype
+
+    Parameters
+    ----------
+    data
+        Source data to be converted
+    dtype
+        Desired result iterable data type
+    mappings, optional
+        Predefined conversions, by default None
+
+    Returns
+    -------
+       Converted data
+    """
     origin = get_origin(dtype)
     args = get_args(dtype)
     assert isinstance(origin, type)
@@ -100,6 +115,26 @@ def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None)
         elements.extend(convert(el, dt_val, mappings) for dt_val, el in zip(args, data))
 
     return origin(elements)  # type: ignore
+
+
+def convert_generic_alias(
+    data: Any, dtype: type[T], type_mappings: TypeConverterMap[T] = None
+) -> T:
+    """
+    Datatype conversion function for dtype of `types.GenericAlias`.
+    See `convert` for details
+    """
+    origin = get_origin(dtype)
+    assert isinstance(origin, type)
+    if issubclass(origin, Mapping):
+        if not isinstance(data, Mapping):
+            raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
+        return convert_mapping(data, dtype, type_mappings)
+    if not issubclass(origin, Iterable):
+        raise ValueError(f"{origin}")
+    if not isinstance(data, Iterable):
+        raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
+    return convert_iterable(data, dtype, type_mappings)
 
 
 def convert(
@@ -120,7 +155,8 @@ def convert(
     -------
         The converted datatype
     """
-    if dtype is None or dtype is inspect._empty:
+    empty = inspect.Parameter.empty
+    if dtype is None or dtype is empty:
         return data  # no datatype was specified
     if type(dtype) == type and isinstance(data, dtype):  # pylint: disable=C0123
         return data  # already the right type
@@ -134,15 +170,5 @@ def convert(
         # try default conversion
         return dtype(data)  # type: ignore
     if type(dtype) == types.GenericAlias:  # pylint: disable=C0123
-        origin = get_origin(dtype)
-        assert isinstance(origin, type)
-        if issubclass(origin, Mapping):
-            if not isinstance(data, Mapping):
-                raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-            return convert_mapping(data, dtype, type_mappings)
-        if not issubclass(origin, Iterable):
-            raise ValueError(f"{origin}")
-        if not isinstance(data, Iterable):
-            raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-        return convert_iterable(data, dtype, type_mappings)
+        return convert_generic_alias(data, dtype, type_mappings)
     raise ValueError(f"{type(dtype)}, {dtype}")

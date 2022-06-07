@@ -41,7 +41,10 @@ class Convertor(Mapping):
     def __getitem__(self, key):
         return self.mappings[key]
 
-    def get(self, key):
+    def get_converter(self, key):
+        """Return registered conversion for key type.
+        If no conversion is registred, return the last resort convertor (the type constructor)
+        """
         return self[key] if key in self else key
 
     def __contains__(self, key):

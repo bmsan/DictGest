@@ -3,7 +3,7 @@ from dictgest import default_convertor, from_dict
 from dataclasses import dataclass
 
 # Get any already registered bool convertor
-default_bool_conv = default_convertor.get(bool)
+default_bool_conv = default_convertor.get_converter(bool)
 
 # create a custom converter
 def custom_bool_conv(val):

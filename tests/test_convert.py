@@ -118,7 +118,7 @@ def test_default_converter():
         "e": 1640988000,
     }
 
-    bool_convertor = default_convertor.get(bool)
+    bool_convertor = default_convertor.get_converter(bool)
 
     def custom_bool_convertor(val):
         if val == "lol":
