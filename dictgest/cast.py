@@ -39,6 +39,26 @@ def convert_mapping(
     dtype: type[M],
     mappings: TypeConverterMap[M] = None,
 ) -> M:
+    """Convert data to sepcified Mapping Annotated type
+
+    Parameters
+    ----------
+    data
+        Source data to be converted
+    dtype
+        Desired Mapping type of the result
+    mappings, optional
+        Converters for mapping types, by default None
+
+    Returns
+    -------
+        data converted to dtype
+
+    Raises
+    ------
+    ValueError
+        _description_
+    """
     origin = get_origin(dtype)
     args = get_args(dtype)
     assert isinstance(origin, type)
@@ -102,17 +122,18 @@ def convert(
     """
     if dtype is None or dtype is inspect._empty:
         return data  # no datatype was specified
-    if type(dtype) == type and isinstance(data, dtype):
+    if type(dtype) == type and isinstance(data, dtype):  # pylint: disable=C0123
         return data  # already the right type
     if type_mappings and dtype in type_mappings:
         return type_mappings[dtype](data)
-    if type(dtype) == type:  # base type
+    if type(dtype) == type:  # pylint: disable=C0123
+        # base type
         if issubclass(dtype, TypeCastable):
             # Type has been decorated with the @typecast decorator
             return dtype.__typecast__(data, type_mappings)
         # try default conversion
         return dtype(data)  # type: ignore
-    elif type(dtype) == types.GenericAlias:
+    if type(dtype) == types.GenericAlias:  # pylint: disable=C0123
         origin = get_origin(dtype)
         assert isinstance(origin, type)
         if issubclass(origin, Mapping):
@@ -124,5 +145,4 @@ def convert(
         if not isinstance(data, Iterable):
             raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
         return convert_iterable(data, dtype, type_mappings)
-    else:
-        raise ValueError(f"{type(dtype)}, {dtype}")
+    raise ValueError(f"{type(dtype)}, {dtype}")

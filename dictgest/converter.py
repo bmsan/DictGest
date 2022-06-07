@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Mapping, TypeVar
-from dictgest.cast import TypeConvertor, convert
-from datetime import datetime, date, timedelta
 from dateutil import parser as date_parser
+from dictgest.cast import TypeConvertor, convert
 
 
 T = TypeVar("T")
@@ -43,10 +42,7 @@ class Convertor(Mapping):
         return self.mappings[key]
 
     def get(self, key):
-        if key in self:
-            return self[key]
-        # Fallback
-        return key
+        return self[key] if key in self else key
 
     def __contains__(self, key):
         return key in self.mappings
@@ -59,6 +55,7 @@ class Convertor(Mapping):
 
 
 def bool_converter(val) -> bool:
+    """Convert to bool"""
     if isinstance(val, bool):
         return val
     if val == 1:
@@ -75,6 +72,10 @@ def bool_converter(val) -> bool:
 
 
 def date_convertor(val) -> datetime:
+    """Convert value to datetime.
+    If the input is numeric it will be treated as unixtime.
+    If the input is a string the format will be autodeduced
+    """
     if isinstance(val, datetime):
         return val
     try:
@@ -90,3 +91,8 @@ default_convertor = Convertor()
 
 default_convertor.register(datetime, date_convertor)
 default_convertor.register(bool, bool_converter)
+
+
+def get_default_convertor() -> Convertor:
+    """Returns the default converter used by `from_dict`"""
+    return default_convertor

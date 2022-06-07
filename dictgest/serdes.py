@@ -1,10 +1,9 @@
-# from datetime import datetime
 import inspect
-from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias, Union  # type: ignore
+from typing import Any, Callable, Optional, TypeVar, types, _AnnotatedAlias  # type: ignore
+from functools import partial
 
 # from dateutil import parser as date_parser
-from .cast import TypeConverterMap, convert, TypeCastable
-from functools import partial
+from .cast import TypeConverterMap, convert
 from .converter import default_convertor
 
 T = TypeVar("T", bound=type)
@@ -92,7 +91,11 @@ def from_dict(
 
 
 def flatten(data: list):
-    if len(data) > 0 and isinstance(data[0], (list, tuple)):
+    """Flatten a nested list
+    Eg: [[a, b, c], [d, e]] => [a, b, c, d, e]
+
+    """
+    if data and isinstance(data[0], (list, tuple)):
         out = []
         for elem in data:
             out += elem
@@ -149,6 +152,18 @@ class Path:
         self.flatten_en = flatten_en
 
     def extract(self, data: dict[str, Any]):
+        """Extract element from dictionary data from the configured path.
+
+        Parameters
+        ----------
+        data
+            Dictionary from which to extract the targeted value
+
+        Returns
+        -------
+            Extracted value
+
+        """
         for part in self.parts:
 
             if part.startswith("*"):
@@ -167,14 +182,13 @@ class Path:
                     if part == "":
                         pass
                     else:
-                        if isinstance(data, int):
-                            print()
                         data = data[part]
         if self.extractor is not None:
             data = self.extractor(data)
         return data
 
     def get(self, data: dict, default):
+        """`extract` with default value in case of failure"""
         try:
             return self.extract(data)
         except KeyError:
