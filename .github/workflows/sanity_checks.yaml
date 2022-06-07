@@ -37,10 +37,21 @@ jobs:
         run: |
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Run unit tests
+
+      - name: run unit tests
         run: |
           pytest
         if: always()
+      - name: run mypy static types check
+        run: |
+          mypy --install-types --non-interactive dictgest/*.py
+        if: always()
+
+      - name: Pylint
+        run: |
+          pylint --fail-under=10 dictgest
+        if: always()
+
       - name: Coverage
         run: |
           pytest --cov=dictgest --cov-report=xml

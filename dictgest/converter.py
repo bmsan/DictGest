@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Mapping, TypeVar
-from dictgest.cast import TypeConvertor, convert
-from datetime import datetime, date, timedelta
 from dateutil import parser as date_parser
+from dictgest.cast import TypeConvertor, convert
 
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
 
 
 class Convertor(Mapping):
@@ -17,7 +16,7 @@ class Convertor(Mapping):
     def __init__(self):
         self.mappings: dict[type, TypeConvertor] = {}
 
-    def register(self, dtype: T, converter: TypeConvertor[T]):
+    def register(self, dtype: type[T], converter: TypeConvertor[T]):
         """Registers a convertor for a data type
 
         Parameters
@@ -30,7 +29,7 @@ class Convertor(Mapping):
 
         self.mappings[dtype] = converter
 
-    def convert(self, data, dtype: T) -> T:
+    def convert(self, data, dtype: type[T]) -> T:
         """Converts the data to the dtype. It will try to a registered convertor.
         If there wasn't registered any converter it will fallback to a default conversion.
         """
@@ -42,11 +41,11 @@ class Convertor(Mapping):
     def __getitem__(self, key):
         return self.mappings[key]
 
-    def get(self, key):
-        if key in self:
-            return self[key]
-        # Fallback
-        return key
+    def get_converter(self, key):
+        """Return registered conversion for key type.
+        If no conversion is registred, return the last resort convertor (the type constructor)
+        """
+        return self[key] if key in self else key
 
     def __contains__(self, key):
         return key in self.mappings
@@ -59,6 +58,7 @@ class Convertor(Mapping):
 
 
 def bool_converter(val) -> bool:
+    """Convert to bool"""
     if isinstance(val, bool):
         return val
     if val == 1:
@@ -75,6 +75,10 @@ def bool_converter(val) -> bool:
 
 
 def date_convertor(val) -> datetime:
+    """Convert value to datetime.
+    If the input is numeric it will be treated as unixtime.
+    If the input is a string the format will be autodeduced
+    """
     if isinstance(val, datetime):
         return val
     try:
@@ -90,3 +94,8 @@ default_convertor = Convertor()
 
 default_convertor.register(datetime, date_convertor)
 default_convertor.register(bool, bool_converter)
+
+
+def get_default_convertor() -> Convertor:
+    """Returns the default converter used by `from_dict`"""
+    return default_convertor

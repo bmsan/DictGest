@@ -2,3 +2,10 @@ pytest==7.0.1
 pytest-cov==3.0.0
 python_dateutil>=2.8.2
 setuptools>=45.2.0
+mypy==0.960
+mypy-extensions==0.4.3
+pylint==2.13.9
+pylint-celery==0.3
+pylint-django==2.5.3
+pylint-flask==0.6
+pylint-plugin-utils==0.7

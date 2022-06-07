@@ -1,8 +1,13 @@
 # DictGest - Python Dictionary Ingestion
 
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=bmsan_DictGest&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=bmsan_DictGest)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bmsan_DictGest&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=bmsan_DictGest)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bmsan_DictGest&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bmsan_DictGest)
 [![Code Coverage](https://codecov.io/gh/bmsan/dictgest/branch/main/graph/badge.svg?token=WHTIAW8C85)](https://codecov.io/gh/bmsan/dictgest)
 [![CI status](https://github.com/bmsan/dictgest/workflows/CI/badge.svg)](https://github.com/bmsan/dictgest/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
 [![Docs](https://readthedocs.org/projects/dictgest/badge/?version=latest)](https://readthedocs.org/projects/dictgest)
+![MYPY](https://img.shields.io/badge/mypy-type%20checked-green)
+![Pylint](https://img.shields.io/badge/Pylint-10.00/10-green)
 [![Discord](https://img.shields.io/discord/981859018836426752?label=Discord%20chat&style=flat)](https://discord.gg/yBb99rxBUZ)
 
 # Description
@@ -124,7 +129,7 @@ from dataclasses import dataclass
 from dictgest import default_convertor, from_dict
 
 # Get any already registered bool convertor
-default_bool_conv = default_convertor.get(bool)
+default_bool_conv = default_convertor.get_convertor(bool)
 
 # create a custom converter
 def custom_bool_conv(val):

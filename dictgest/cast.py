@@ -1,18 +1,23 @@
 import copy
 import inspect
-from typing import (
+from typing import (  # type: ignore
     Any,
     Callable,
     Iterable,
     Mapping,
+    MutableMapping,
     Optional,
     Protocol,
     TypeVar,
+    cast,
+    get_args,
+    get_origin,
     runtime_checkable,
     types,
 )
 
-T = TypeVar("T", bound=type)
+T = TypeVar("T")
+M = TypeVar("M", bound=Mapping)
 
 TypeConverterMap = Mapping[type[T], Callable[[Any], T]]
 TypeConvertor = Callable[[Any], T]
@@ -29,58 +34,111 @@ class TypeCastable(Protocol):
         ...
 
 
-def convert_mapping(data, dtype, mappings: TypeConverterMap):
-    origin = dtype.__origin__
-    if not issubclass(origin, Mapping):
+def convert_mapping(
+    data: Mapping,
+    dtype: type[T],
+    mappings: TypeConverterMap[T] = None,
+) -> T:
+    """Convert data to sepcified Mapping Annotated type
+
+    Parameters
+    ----------
+    data
+        Source data to be converted
+    dtype
+        Desired Mapping type of the result
+    mappings, optional
+        Converters for mapping types, by default None
+
+    Returns
+    -------
+        data converted to dtype
+
+    Raises
+    ------
+    ValueError
+        _description_
+    """
+    origin = get_origin(dtype)
+    args = get_args(dtype)
+    assert isinstance(origin, type)
+
+    if not issubclass(origin, MutableMapping):
         raise ValueError()
 
-    args = dtype.__args__
     assert len(args) == 2
     assert isinstance(data, Mapping)
     # Here we should actually try to create the mapping type
     # 1. Try to create the Mapping datatype
     # 2. If above fails try to copy if the original data is the desired datatype
     # 3. Fallback to dictionary
+    # res: Mapping = {}
     try:
         res = origin()
-    except Exception:
-        if isinstance(data, origin):
-            res = copy.copy(data)
-        else:
-            # TODO: Raise warning
-            # TODO: Maybe look at default value
-            res = {}
+    except (TypeError, ValueError):
+        res = copy.copy(data) if isinstance(data, origin) else {}
     key_type, val_type = args
     for key, val in data.items():
         key = convert(key, key_type, mappings)
         val = convert(val, val_type, mappings)
         res[key] = val
-    return res
+    return cast(T, res)
 
 
-def convert_iterable(data, dtype: types.GenericAlias, mappings: TypeConverterMap):
-    origin = dtype.__origin__
+def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None) -> T:
+    """Convert data according to the annotated Iterable datatype
+
+    Parameters
+    ----------
+    data
+        Source data to be converted
+    dtype
+        Desired result iterable data type
+    mappings, optional
+        Predefined conversions, by default None
+
+    Returns
+    -------
+       Converted data
+    """
+    origin = get_origin(dtype)
+    args = get_args(dtype)
+    assert isinstance(origin, type)
     if not issubclass(origin, Iterable):
         raise ValueError()
 
-    args = dtype.__args__
-
-    elements = []
+    elements: list[Any] = []
     if len(args) == 1:
-        for el in data:
-            elements.append(convert(el, args[0], mappings))
+        elements.extend(convert(el, args[0], mappings) for el in data)
     else:
         assert len(args) == len(data)
-        for dt_val, el in zip(args, data):
-            elements.append(convert(el, dt_val, mappings))
+        elements.extend(convert(el, dt_val, mappings) for dt_val, el in zip(args, data))
 
-    res = origin(elements)
+    return origin(elements)  # type: ignore
 
-    return res
+
+def convert_generic_alias(
+    data: Any, dtype: type[T], type_mappings: TypeConverterMap[T] = None
+) -> T:
+    """
+    Datatype conversion function for dtype of `types.GenericAlias`.
+    See `convert` for details
+    """
+    origin = get_origin(dtype)
+    assert isinstance(origin, type)
+    if issubclass(origin, Mapping):
+        if not isinstance(data, Mapping):
+            raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
+        return convert_mapping(data, dtype, type_mappings)
+    if not issubclass(origin, Iterable):
+        raise ValueError(f"{origin}")
+    if not isinstance(data, Iterable):
+        raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
+    return convert_iterable(data, dtype, type_mappings)
 
 
 def convert(
-    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap = None
+    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap[T] = None
 ) -> T:
     """Converts a data value to a specified data type.
 
@@ -97,28 +155,20 @@ def convert(
     -------
         The converted datatype
     """
-    if dtype in [None, inspect._empty]:
+    empty = inspect.Parameter.empty
+    if dtype is None or dtype is empty:
         return data  # no datatype was specified
-    if type(dtype) == type and isinstance(data, dtype):
+    if type(dtype) == type and isinstance(data, dtype):  # pylint: disable=C0123
         return data  # already the right type
     if type_mappings and dtype in type_mappings:
         return type_mappings[dtype](data)
-    if type(dtype) == type:  # base type
+    if type(dtype) == type:  # pylint: disable=C0123
+        # base type
         if issubclass(dtype, TypeCastable):
             # Type has been decorated with the @typecast decorator
             return dtype.__typecast__(data, type_mappings)
-        return dtype(data)  # try default conversion
-    elif type(dtype) == types.GenericAlias:
-        origin = dtype.__origin__
-        if issubclass(origin, Mapping):
-            if not isinstance(data, Mapping):
-                raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-            return convert_mapping(data, dtype, type_mappings)
-        if issubclass(origin, Iterable):
-            if not isinstance(data, Iterable):
-                raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-            return convert_iterable(data, dtype, type_mappings)
-        else:
-            raise ValueError(f"{origin}")
-    else:
-        raise ValueError(f"{type(dtype)}, {dtype}")
+        # try default conversion
+        return dtype(data)  # type: ignore
+    if type(dtype) == types.GenericAlias:  # pylint: disable=C0123
+        return convert_generic_alias(data, dtype, type_mappings)
+    raise ValueError(f"{type(dtype)}, {dtype}")
