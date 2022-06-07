@@ -6,9 +6,8 @@
 [![Code Coverage](https://codecov.io/gh/bmsan/dictgest/branch/main/graph/badge.svg?token=WHTIAW8C85)](https://codecov.io/gh/bmsan/dictgest)
 [![CI status](https://github.com/bmsan/dictgest/workflows/CI/badge.svg)](https://github.com/bmsan/dictgest/actions?queryworkflow%3ACI+event%3Apush+branch%3Amain)
 [![Docs](https://readthedocs.org/projects/dictgest/badge/?version=latest)](https://readthedocs.org/projects/dictgest)
-
 ![MYPY](https://img.shields.io/badge/mypy-type%20checked-green)
-
+![Pylint](https://img.shields.io/badge/Pylint-10.00/10-green)
 [![Discord](https://img.shields.io/discord/981859018836426752?label=Discord%20chat&style=flat)](https://discord.gg/yBb99rxBUZ)
 
 # Description
