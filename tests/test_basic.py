@@ -2,7 +2,7 @@ from typing import Annotated, Any, Protocol, runtime_checkable
 import pytest
 from dataclasses import dataclass
 from dictgest import from_dict, typecast
-from dictgest.serdes import Path
+from dictgest import Path
 
 
 def check_fields(obj, ref_dict):

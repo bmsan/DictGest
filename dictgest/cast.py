@@ -16,10 +16,13 @@ from typing import (  # type: ignore
     types,
 )
 
+from dictgest.routes import Chart
+
 T = TypeVar("T")
 M = TypeVar("M", bound=Mapping)
 
 TypeConverterMap = Mapping[type[T], Callable[[Any], T]]
+RouteMap = Mapping[type, Any]
 TypeConvertor = Callable[[Any], T]
 
 
@@ -30,7 +33,11 @@ class TypeCastable(Protocol):
     """
 
     @staticmethod
-    def __typecast__(data: dict[str, Any], mapping: Optional[TypeConverterMap]):
+    def __typecast__(
+        data: dict[str, Any],
+        mapping: Optional[TypeConverterMap],
+        routes: Optional[RouteMap],
+    ):
         ...
 
 
@@ -38,6 +45,7 @@ def convert_mapping(
     data: Mapping,
     dtype: type[T],
     mappings: TypeConverterMap[T] = None,
+    routing: Chart = None,
 ) -> T:
     """Convert data to sepcified Mapping Annotated type
 
@@ -85,7 +93,12 @@ def convert_mapping(
     return cast(T, res)
 
 
-def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None) -> T:
+def convert_iterable(
+    data,
+    dtype: type[T],
+    mappings: TypeConverterMap[T] = None,
+    routing: Chart = None,
+) -> T:
     """Convert data according to the annotated Iterable datatype
 
     Parameters
@@ -118,7 +131,10 @@ def convert_iterable(data, dtype: type[T], mappings: TypeConverterMap[T] = None)
 
 
 def convert_generic_alias(
-    data: Any, dtype: type[T], type_mappings: TypeConverterMap[T] = None
+    data: Any,
+    dtype: type[T],
+    type_mappings: TypeConverterMap[T] = None,
+    routing: Chart = None,
 ) -> T:
     """
     Datatype conversion function for dtype of `types.GenericAlias`.
@@ -129,16 +145,19 @@ def convert_generic_alias(
     if issubclass(origin, Mapping):
         if not isinstance(data, Mapping):
             raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-        return convert_mapping(data, dtype, type_mappings)
+        return convert_mapping(data, dtype, type_mappings, routing)
     if not issubclass(origin, Iterable):
         raise ValueError(f"{origin}")
     if not isinstance(data, Iterable):
         raise TypeError(f"Cannot convert from {type(data)} to : {dtype}")
-    return convert_iterable(data, dtype, type_mappings)
+    return convert_iterable(data, dtype, type_mappings, routing)
 
 
 def convert(
-    data: Any, dtype: Optional[type[T]], type_mappings: TypeConverterMap[T] = None
+    data: Any,
+    dtype: Optional[type[T]],
+    type_mappings: TypeConverterMap[T] = None,
+    routing: Chart = None,
 ) -> T:
     """Converts a data value to a specified data type.
 
@@ -166,9 +185,11 @@ def convert(
         # base type
         if issubclass(dtype, TypeCastable):
             # Type has been decorated with the @typecast decorator
-            return dtype.__typecast__(data, type_mappings)
+            return dtype.__typecast__(data, type_mappings, routing)
+        if routing and dtype in routing:
+            return routing.typecast(dtype, data, type_mappings, routing)
         # try default conversion
         return dtype(data)  # type: ignore
     if type(dtype) == types.GenericAlias:  # pylint: disable=C0123
-        return convert_generic_alias(data, dtype, type_mappings)
+        return convert_generic_alias(data, dtype, type_mappings, routing)
     raise ValueError(f"{type(dtype)}, {dtype}")
