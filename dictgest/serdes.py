@@ -1,9 +1,5 @@
 import inspect
 from typing import (  # type: ignore
-    Any,
-    Callable,
-    Iterable,
-    Mapping,
     Optional,
     TypeVar,
     Union,
@@ -77,6 +73,21 @@ def _get_route_path(anot, name: str, route_template: Optional[Route]):
     return template_path or anot_path
 
 
+def _construct_routing(
+    dtype: type, routing: Union[Route, dict[type, Route], Chart, None]
+) -> Optional[Chart]:
+    chart = None
+    if routing:
+        if isinstance(routing, Chart):
+            chart = routing
+        elif isinstance(routing, Route):
+            chart = Chart({dtype: routing})
+        else:
+            chart = Chart(routing)
+        chart.typecast = from_dict
+    return chart
+
+
 def from_dict(
     target: type[T],
     data: dict,
@@ -105,12 +116,7 @@ def from_dict(
     empty = inspect.Parameter.empty
     params = inspect.signature(target).parameters
 
-    if routing:
-        if isinstance(routing, Route):
-            routing = Chart({target: routing})
-        elif not isinstance(routing, Chart):
-            routing = Chart(routing)
-        routing.typecast = from_dict
+    routing = _construct_routing(target, routing)
     router = routing[target] if routing and target in routing else None
 
     kwargs = {}

@@ -36,7 +36,7 @@ class TypeCastable(Protocol):
     def __typecast__(
         data: dict[str, Any],
         mapping: Optional[TypeConverterMap],
-        routes: Optional[RouteMap],
+        routes: Optional[Chart],
     ):
         ...
 
@@ -45,7 +45,7 @@ def convert_mapping(
     data: Mapping,
     dtype: type[T],
     mappings: TypeConverterMap[T] = None,
-    routing: Chart = None,
+    routing: Chart = None,  # pylint: disable=W0613
 ) -> T:
     """Convert data to sepcified Mapping Annotated type
 
@@ -97,7 +97,7 @@ def convert_iterable(
     data,
     dtype: type[T],
     mappings: TypeConverterMap[T] = None,
-    routing: Chart = None,
+    routing: Chart = None,  # pylint: disable=W0613
 ) -> T:
     """Convert data according to the annotated Iterable datatype
 
@@ -130,6 +130,31 @@ def convert_iterable(
     return origin(elements)  # type: ignore
 
 
+def convert_base_type(
+    data: Any,
+    dtype: type[T],
+    type_mappings: TypeConverterMap[T] = None,
+    routing: Chart = None,
+) -> T:
+    """
+    Datatype conversion function when dtype isn't a generic alias
+    See `convert` for details
+    """
+    if type_mappings and dtype in type_mappings:
+        return type_mappings[dtype](data)
+
+    # base type
+    if issubclass(dtype, TypeCastable):
+        # Type has been decorated with the @typecast decorator
+        return dtype.__typecast__(data, type_mappings, routing)
+    if routing and dtype in routing:
+        if routing.typecast:
+            return routing.typecast(dtype, data, type_mappings, routing)
+        raise ValueError("routing.typecast was not set")
+    # try default conversion
+    return dtype(data)  # type: ignore
+
+
 def convert_generic_alias(
     data: Any,
     dtype: type[T],
@@ -140,6 +165,9 @@ def convert_generic_alias(
     Datatype conversion function for dtype of `types.GenericAlias`.
     See `convert` for details
     """
+    if type_mappings and dtype in type_mappings:
+        return type_mappings[dtype](data)
+
     origin = get_origin(dtype)
     assert isinstance(origin, type)
     if issubclass(origin, Mapping):
@@ -177,19 +205,10 @@ def convert(
     empty = inspect.Parameter.empty
     if dtype is None or dtype is empty:
         return data  # no datatype was specified
-    if type(dtype) == type and isinstance(data, dtype):  # pylint: disable=C0123
-        return data  # already the right type
-    if type_mappings and dtype in type_mappings:
-        return type_mappings[dtype](data)
     if type(dtype) == type:  # pylint: disable=C0123
-        # base type
-        if issubclass(dtype, TypeCastable):
-            # Type has been decorated with the @typecast decorator
-            return dtype.__typecast__(data, type_mappings, routing)
-        if routing and dtype in routing:
-            return routing.typecast(dtype, data, type_mappings, routing)
-        # try default conversion
-        return dtype(data)  # type: ignore
+        if isinstance(data, dtype):
+            return data  # already the right type
+        return convert_base_type(data, dtype, type_mappings, routing)
     if type(dtype) == types.GenericAlias:  # pylint: disable=C0123
         return convert_generic_alias(data, dtype, type_mappings, routing)
     raise ValueError(f"{type(dtype)}, {dtype}")

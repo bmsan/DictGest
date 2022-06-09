@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, Iterable, Mapping, Union
+from typing import Any, Callable, Iterable, Mapping, Optional, Union
 
 from dictgest.utils import flatten
 
@@ -152,7 +152,7 @@ class Chart:
         if not isinstance(routes, Mapping):
             raise TypeError(f"Expected a Mapping type, received {type(routes)}")
         self.routes = routes
-        self.typecast = None
+        self.typecast: Optional[Callable] = None
         self.check()
 
     def check(self):
