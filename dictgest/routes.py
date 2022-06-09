@@ -134,11 +134,15 @@ class Route:
     def __getitem__(self, key):
         return self.mapping[key] if key in self.mapping else None
 
-    def check_type(self, dtype):
+    def check_type(self, dtype: type):
+        """
+        Check if the dtype is compatible with the Route
+        """
         params = inspect.signature(dtype).parameters
         self.check_params(params)
 
     def check_params(self, params: Iterable[str]):
+        """Chek if the parameter names are compatible with the Route"""
         params = set(params)
         for key in self.mapping:
             if key not in params:
@@ -148,6 +152,11 @@ class Route:
 
 
 class Chart:
+    """A chart is a collection of routes mapped to classes.
+    A chart describes the way a dictionary ingestion should happen,
+    when multiple different classes will be converted.
+    """
+
     def __init__(self, routes: Mapping[type, Route]):
         if not isinstance(routes, Mapping):
             raise TypeError(f"Expected a Mapping type, received {type(routes)}")
@@ -156,6 +165,10 @@ class Chart:
         self.check()
 
     def check(self):
+        """Check the validity of the chart.
+        A chart can be invalid if the configured routes cannot be mapped to targeted objects.
+        Eg: one of the routes contains a field that is not present in the data type
+        """
         for dtype, route in self.routes.items():
             route.check_type(dtype)
 
