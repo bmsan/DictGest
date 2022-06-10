@@ -112,10 +112,14 @@ def test_default_converter():
     data = {
         "x": "lol",
         "a": "yes",
+        "a1": 1,
+        "a2": True,
         "b": "false",
         "c": 0,
         "d": "2020-01-01",
         "e": 1640988000,
+        "f": datetime(2022, 1, 1, 0, 0),
+        "g": "test_marker",
     }
 
     bool_convertor = default_convertor.get_converter(bool)
@@ -125,29 +129,48 @@ def test_default_converter():
             return True
         return bool_convertor(val)
 
+    global hit_count
+    hit_count = 0
+
+    def custom_generic_convertor(val):
+        global hit_count
+        hit_count += 1
+        assert hit_count == 1
+        assert val == "test_marker"
+        return [["abc", "def"]]
+
     default_convertor.register(bool, custom_bool_convertor)
+    default_convertor.register(list[list[str]], custom_generic_convertor)
 
     @dataclass
-    class A:
+    class AA:
         x: bool
         a: bool
+        a1: bool
+        a2: bool
         b: bool
         c: bool
         d: datetime
         e: datetime
+        f: datetime
+        g: list[list[str]]
 
-    a = from_dict(A, data)
+    a = from_dict(AA, data)
     check_fields(
         a,
         {
             "x": True,
             "a": True,
+            "a1": True,
+            "a2": True,
             "b": False,
             "c": False,
             "d": datetime(2020, 1, 1, 0, 0),
             "e": datetime(2021, 12, 31, 22, 0),
+            "f": datetime(2022, 1, 1, 0, 0),
         },
     )
+    assert hit_count == 1
 
 
 def test_negative():
@@ -156,3 +179,41 @@ def test_negative():
 
     with pytest.raises(Exception):
         convert([3.14, "str"], dict[str, list])
+
+
+def test_flatten():
+    data = {
+        "a": 3.4,
+        "b": 4,
+        "c": {
+            "de": {
+                "e": 10.2,
+                "f": [
+                    {"g": [10.3, 100]},
+                    {"g": [11, 200]},
+                    {"g": [12.1, 300]},
+                    {"g": [13.2, 400]},
+                ],
+            },
+        },
+    }
+
+    @dataclass
+    class A:
+        a: int
+        b: float
+        f: Annotated[list[int], Path("c/de/f/g")]
+        g: Annotated[list[int], Path("c/de/f/g", flatten_en=False)]
+
+    a = from_dict(A, data, convert_types=False)
+    check_fields(
+        a,
+        {
+            "a": 3.4,
+            "b": 4,
+            "d": 10.1,
+            "e": 10.2,
+            "f": [10.3, 100, 11, 200, 12.1, 300, 13.2, 400],
+            "g": [[10.3, 100], [11, 200], [12.1, 300], [13.2, 400]],
+        },
+    )
