@@ -112,10 +112,13 @@ def test_default_converter():
     data = {
         "x": "lol",
         "a": "yes",
+        "a1": 1,
+        "a2": True,
         "b": "false",
         "c": 0,
         "d": "2020-01-01",
         "e": 1640988000,
+        "f": datetime(2022, 1, 1, 0, 0),
     }
 
     bool_convertor = default_convertor.get_converter(bool)
@@ -128,24 +131,30 @@ def test_default_converter():
     default_convertor.register(bool, custom_bool_convertor)
 
     @dataclass
-    class A:
+    class AA:
         x: bool
         a: bool
+        a1: bool
+        a2: bool
         b: bool
         c: bool
         d: datetime
         e: datetime
+        f: datetime
 
-    a = from_dict(A, data)
+    a = from_dict(AA, data)
     check_fields(
         a,
         {
             "x": True,
             "a": True,
+            "a1": True,
+            "a2": True,
             "b": False,
             "c": False,
             "d": datetime(2020, 1, 1, 0, 0),
             "e": datetime(2021, 12, 31, 22, 0),
+            "f": datetime(2022, 1, 1, 0, 0),
         },
     )
 

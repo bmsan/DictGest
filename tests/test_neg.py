@@ -38,6 +38,15 @@ def test_type_error():
     with pytest.raises(TypeError):
         from_dict(A1, data)
 
+    @dataclass
+    class A2:
+        a: bool
+
+    data = {"a": "yesok"}
+
+    with pytest.raises(ValueError):
+        from_dict(A2, data)
+
 
 def test_route_error():
     @dataclass

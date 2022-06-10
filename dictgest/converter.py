@@ -95,7 +95,3 @@ default_convertor = Convertor()
 default_convertor.register(datetime, date_convertor)
 default_convertor.register(bool, bool_converter)
 
-
-def get_default_convertor() -> Convertor:
-    """Returns the default converter used by `from_dict`"""
-    return default_convertor
