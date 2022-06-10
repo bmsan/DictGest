@@ -156,3 +156,41 @@ def test_negative():
 
     with pytest.raises(Exception):
         convert([3.14, "str"], dict[str, list])
+
+
+def test_flatten():
+    data = {
+        "a": 3.4,
+        "b": 4,
+        "c": {
+            "de": {
+                "e": 10.2,
+                "f": [
+                    {"g": [10.3, 100]},
+                    {"g": [11, 200]},
+                    {"g": [12.1, 300]},
+                    {"g": [13.2, 400]},
+                ],
+            },
+        },
+    }
+
+    @dataclass
+    class A:
+        a: int
+        b: float
+        f: Annotated[list[int], Path("c/de/f/g")]
+        g: Annotated[list[int], Path("c/de/f/g", flatten_en=False)]
+
+    a = from_dict(A, data, convert_types=False)
+    check_fields(
+        a,
+        {
+            "a": 3.4,
+            "b": 4,
+            "d": 10.1,
+            "e": 10.2,
+            "f": [10.3, 100, 11, 200, 12.1, 300, 13.2, 400],
+            "g": [[10.3, 100], [11, 200], [12.1, 300], [13.2, 400]],
+        },
+    )

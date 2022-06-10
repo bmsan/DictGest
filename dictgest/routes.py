@@ -122,6 +122,8 @@ class Route:
         - keys : destination mapping names
         - values: dictionary path.
         """
+        if not kwargs:
+            raise ValueError("Did not pass any parameters to route")
         self.mapping = kwargs
         for key, val in kwargs.items():
             if isinstance(val, str):
