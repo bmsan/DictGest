@@ -119,6 +119,7 @@ def test_default_converter():
         "d": "2020-01-01",
         "e": 1640988000,
         "f": datetime(2022, 1, 1, 0, 0),
+        "g": "test_marker",
     }
 
     bool_convertor = default_convertor.get_converter(bool)
@@ -128,7 +129,18 @@ def test_default_converter():
             return True
         return bool_convertor(val)
 
+    global hit_count
+    hit_count = 0
+
+    def custom_generic_convertor(val):
+        global hit_count
+        hit_count += 1
+        assert hit_count == 1
+        assert val == "test_marker"
+        return [["abc", "def"]]
+
     default_convertor.register(bool, custom_bool_convertor)
+    default_convertor.register(list[list[str]], custom_generic_convertor)
 
     @dataclass
     class AA:
@@ -141,6 +153,7 @@ def test_default_converter():
         d: datetime
         e: datetime
         f: datetime
+        g: list[list[str]]
 
     a = from_dict(AA, data)
     check_fields(
@@ -157,6 +170,7 @@ def test_default_converter():
             "f": datetime(2022, 1, 1, 0, 0),
         },
     )
+    assert hit_count == 1
 
 
 def test_negative():

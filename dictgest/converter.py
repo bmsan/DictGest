@@ -29,15 +29,6 @@ class Convertor(Mapping):
 
         self.mappings[dtype] = converter
 
-    def convert(self, data, dtype: type[T]) -> T:
-        """Converts the data to the dtype. It will try to a registered convertor.
-        If there wasn't registered any converter it will fallback to a default conversion.
-        """
-        if dtype in self.mappings:
-            return self.mappings[dtype](data)
-
-        return convert(data, dtype)
-
     def __getitem__(self, key):
         return self.mappings[key]
 
@@ -94,4 +85,3 @@ default_convertor = Convertor()
 
 default_convertor.register(datetime, date_convertor)
 default_convertor.register(bool, bool_converter)
-
