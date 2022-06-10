@@ -59,3 +59,8 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: ./coverage.xml
+
+      - name: Pylint
+        run: |
+          for f in examples/*.py; do python "$f"; done
+        if: always()

@@ -55,6 +55,7 @@ stats = from_dict(ArticleStats, news_api_data)
 
 The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_example.py)
 
+There cases where mapping to multiple APIs might be required. For this look at examples 6 & 7.
 
 ## Example 3: Data type enforcing
 
@@ -154,6 +155,129 @@ result = from_dict(Result, {"finished": True, "notified": "oups"})
 print(result)
 
 ```
+
+## Example 6: Populating the same structure from multiple different dict formats (multiple APIs)
+
+There are cases where you might read information from multiple heterogenous APIs and you might want to convert them all to the same structure.
+
+Previously we have annotated fields( using typing.Annotation hint ) with Path eg: ` name: Annotated[str, Path('article')] `. This works well for a single conversion mapping.
+
+For this current scenario we are going to decouple the class from the Routing.
+
+Previously single mapping scenario:
+```py
+@dataclass
+class Article:
+    author: str
+    title: Annotated[str, Path("headline")]
+    content: Annotated[str, Path("details/content")]
+
+```
+
+
+But now we have 2 API news sources
+
+```py
+data_from_api1 = {
+    "author": "H.O. Ward"
+    "headline" : "Top 10 Python extensions", 
+    "other_fields" : ...,
+    "details": {
+        "content": "Here are the top 10...",
+        "other_fields": ...
+         }
+    }
+
+data_from_api2 = {
+    "author": "G.O. Gu" 
+    "news_title" : "Vscode gets a new facelift", 
+    "other_fields" : ...,
+    "full_article": "Yesterday a new version ...",
+    }
+
+
+}
+```
+
+We are going to use `dictgest.Route` to define multiple standalone routes.
+
+Our previous example becomes:
+```py
+@dataclass
+class Article:
+    author: str
+    title: str # Path annotations are decoupled
+    content: str
+
+# Routing equivalent to previous example
+article_api1 = Route(title="headline", content="details/content")
+
+# New Routing for a new dict structure
+article_api2 = Route(title="news_title", content="full_article")
+
+
+article1 = from_dict(Article, data_from_api1, routing=article_api1)
+article2 = from_dict(Article, data_from_api2, routing=article_api2)
+```
+
+
+The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_multi_example.py)
+
+
+## Example 7: Populating multiple structures from multiple different dict formats (multiple APIs)
+The previous example treated the mapping of a single Class to multiple formats.
+Now we'll see how to map multiple Classes to multiple formats.
+
+```py
+@dataclass
+class ArticleStats:
+    views: int
+    num_comments: int
+
+
+@dataclass
+class Article:
+    author: str
+    title: str
+    content: str
+    stats: ArticleStats
+```
+
+
+Previously we used `dictgest.Route` to pass the routing corresponding to a single class.
+
+To do the same but for multiple classes we can pass a dictionary of routes
+` {Cls1: Cls1Route, Cls2: Cls2Route,...} `
+
+
+```py
+api1_routing = {
+    Article: Route(
+        title="headline",
+        content="details/content",
+        stats="",  # Give the whole dictionary to ArticleStats for conversion
+    ),
+    ArticleStats: Route(views="details/views", num_comments="details/comments"),
+}
+
+api2_routing = {
+    Article: Route(title="news_title", content="full_article", stats=""),
+    ArticleStats: Route(num_comments="comments"),
+}
+
+```
+
+And then call
+
+```py
+article1 = from_dict(Article, news_api1_data, routing=api1_routing)
+article2 = from_dict(Article, news_api2_data, routing=api2_routing)
+
+```
+
+The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_multi_adv_example.py)
+
+
 
 ## Installing 
 
