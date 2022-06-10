@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Mapping, TypeVar
 from dateutil import parser as date_parser
-from dictgest.cast import TypeConvertor, convert
+from dictgest.cast import TypeConvertor
 
 
 T = TypeVar("T")
