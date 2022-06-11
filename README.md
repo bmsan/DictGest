@@ -57,7 +57,8 @@ stats = from_dict(ArticleStats, news_api_data)
 
 The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_example.py)
 
-There cases where mapping to multiple APIs might be required. For this look at examples 6 & 7.
+There can be cases where Annotating the type hints of the target class is not desired by the user or when mapping to multiple APIs might be required.
+For these cases look at examples 6 & 7 for an alternate solution.
 
 ## Example 3: Data type enforcing
 
@@ -292,7 +293,6 @@ The full working example can be found in the [examples folder](https://github.co
 ```
 pip install dictgest
 ```
-
 
 ## Contributing
 
