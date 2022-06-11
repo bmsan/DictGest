@@ -37,6 +37,8 @@ car = from_dict(Car, dict_data)
 ```
 
 ## Example 2: Data mapping renaming & rerouting
+The keys names in the source dictionary might not match the destionation class attribute names. 
+Also the source dictionary might have a nested structure different than our desired structure.
 
 ```python
 from typing import Annotated
@@ -90,6 +92,10 @@ The full working example can be found in the [examples folder](https://github.co
 
 
 ## Example 4: Custom Data extraction/conversion for a specific field
+Sometimes we might want to apply custom transforms to some fields when extracting the data from the dictionary.
+In this example we want to read the total number of votes, but in the dictionary source we only have two partial values: the positive and negative number of votes.
+
+We apply a custom transform to get our desired data, using the `extractor`  argument of `dictgest.Path`
 
 ```py
 from typing import Annotated
@@ -124,6 +130,8 @@ The full working example can be found in the [examples folder](https://github.co
 
 
 ## Example 5: Custom Data conversion for a specific type
+
+In some cases we might want to employ a custom conversion for a certain datatype.
 
 ```py
 from dataclasses import dataclass
@@ -284,3 +292,25 @@ The full working example can be found in the [examples folder](https://github.co
 ```
 pip install dictgest
 ```
+
+
+## Contributing
+
+First off, thanks for taking the time to contribute! Contributions are what makes the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
+
+## Support
+
+Reach out to the maintainer at one of the following places:
+- [Github issues](https://github.com/bmsan/DictGest/issues)
+- [Discord](https://discord.gg/yBb99rxBUZ)
+
+
+## License
+
+This project is licensed under the **MIT license**. Feel free to edit and distribute this template as you like.
+
+See [LICENSE](LICENSE) for more information.
+
+## Acknowledgements
+
+- Thanks [Dan Oneata](https://github.com/danoneata) for the discussions related to usecases and API.
