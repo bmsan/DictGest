@@ -1,4 +1,5 @@
 # DictGest - Python Dictionary Ingestion
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/dictgest_logo.jpg)
 
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=bmsan_DictGest&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=bmsan_DictGest)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bmsan_DictGest&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=bmsan_DictGest)
