@@ -313,9 +313,9 @@ We might not want to convert the whole table into a specific data type but map e
 For this `table_to_items` can be used
 
 ```
-    result = dg.table_to_item(SenzorDataPoint, table_data, header)
+    result = dg.table_to_items(SenzorDataPoint, table_data, header)
 
-    result = dg.table_to_item(SenzorDataPoint, table_data_transposed, header, transpose=True)
+    result = dg.table_to_items(SenzorDataPoint, table_data_transposed, header, transpose=True)
 ```
 
 
