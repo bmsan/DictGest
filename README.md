@@ -11,6 +11,25 @@
 ![Pylint](https://img.shields.io/badge/Pylint-10.00/10-green)
 [![Discord](https://img.shields.io/discord/981859018836426752?label=Discord%20chat&style=flat)](https://discord.gg/yBb99rxBUZ)
 
+
+- [DictGest - Python Dictionary Ingestion](#dictgest---python-dictionary-ingestion)
+- [Description](#description)
+- [Examples](#examples)
+  - [Example 1: Trivial Example - Handling Extra parameters](#example-1-trivial-example---handling-extra-parameters)
+  - [Example 2: Data mapping renaming & rerouting](#example-2-data-mapping-renaming--rerouting)
+  - [Example 3: Data type enforcing](#example-3-data-type-enforcing)
+  - [Example 4: Custom Data extraction/conversion for a specific field](#example-4-custom-data-extractionconversion-for-a-specific-field)
+  - [Example 5: Custom Data conversion for a specific type](#example-5-custom-data-conversion-for-a-specific-type)
+  - [Example 6: Populating the same structure from multiple different dict formats (multiple APIs)](#example-6-populating-the-same-structure-from-multiple-different-dict-formats-multiple-apis)
+  - [Example 8: Populating from a 2D Table](#example-8-populating-from-a-2d-table)
+    - [Transposing data](#transposing-data)
+    - [Mapping one table row to target type](#mapping-one-table-row-to-target-type)
+  - [Installing](#installing)
+  - [Contributing](#contributing)
+  - [Support](#support)
+  - [License](#license)
+  - [Acknowledgements](#acknowledgements)
+
 # Description
 
 When interacting with external REST APIs or with external configuration files we usually do not have control 
@@ -234,58 +253,70 @@ article2 = from_dict(Article, data_from_api2, routing=article_api2)
 The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_multi_example.py)
 
 
-## Example 7: Populating multiple structures from multiple different dict formats (multiple APIs)
-The previous example treated the mapping of a single Class to multiple formats.
-Now we'll see how to map multiple Classes to multiple formats.
+## Example 8: Populating from a 2D Table
+Sometimes when querying databases/external APIs the reponse might be in a form of a 2D Table (a list of lists)
 
 ```py
-@dataclass
-class ArticleStats:
-    views: int
-    num_comments: int
-
-
-@dataclass
-class Article:
-    author: str
-    title: str
-    content: str
-    stats: ArticleStats
+    header = ["humidity", "temperatures", "timestamps"]
+    table_data = [
+        [0.4, 7.4, "1Dec2022"],
+        ...
+        [0.6, 5.4, "21Dec2022"],
+    ]
 ```
-
-
-Previously we used `dictgest.Route` to pass the routing corresponding to a single class.
-
-To do the same but for multiple classes we can pass a dictionary of routes
-` {Cls1: Cls1Route, Cls2: Cls2Route,...} `
-
+And our desired target structure could look like this:
 
 ```py
-api1_routing = {
-    Article: Route(
-        title="headline",
-        content="details/content",
-        stats="",  # Give the whole dictionary to ArticleStats for conversion
-    ),
-    ArticleStats: Route(views="details/views", num_comments="details/comments"),
-}
-
-api2_routing = {
-    Article: Route(title="news_title", content="full_article", stats=""),
-    ArticleStats: Route(num_comments="comments"),
-}
-
+   @dataclass
+    class SenzorData:
+            timestamps: list[datetime.datetime]
+            temperatures: list[float]
+            humidity: list[float]
 ```
 
-And then call
+In this example we would like each data column to be  treated as a field of the target type.
+To ingest our data into our target type we can use `table_to_item` following:
 
 ```py
-article1 = from_dict(Article, news_api1_data, routing=api1_routing)
-article2 = from_dict(Article, news_api2_data, routing=api2_routing)
+    import dictgest as dg
 
+    result = dg.table_to_item(SenzorData, table_data, header)
 ```
 
-The full working example can be found in the [examples folder](https://github.com/bmsan/DictGest/blob/main/examples/news_multi_adv_example.py)
+### Transposing data
+The operation can be also be performed row wise by using the `transpose = True` flag.
+So given
+```py
+    header = ["humidity", "temperatures", "timestamps"]
+    table_data_transposed = [
+        # rows are switched with columns
+        [0.4, ..., 0.6],
+        [5.4, ..., 7.4]
+        ["1Dec2022", ..., "21Dec2022"],
+    ]
+
+    result = dg.table_to_item(SenzorData, table_data_transposed, header, transpose=True)
+```
+
+### Mapping one table row to target type
+We might not want to convert the whole table into a specific data type but map each row/column to a specific datatype.
+
+```py
+#Unlike SenzorData defined previously SenzorDataPoint holds information only for a single specific time.
+   @dataclass
+    class SenzorDataPoint:
+            timestamp: datetime.datetime
+            temperature: float
+            humidity: float
+```
+
+For this `table_to_items` can be used
+
+```
+    result = dg.table_to_item(SenzorDataPoint, table_data, header)
+
+    result = dg.table_to_item(SenzorDataPoint, table_data_transposed, header, transpose=True)
+```
 
 
 
