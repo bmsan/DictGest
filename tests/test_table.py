@@ -38,7 +38,6 @@ def test_single_item():
 
     result = dg.table_to_item(SenzorData, table_data, header)
     check_fields(result, ref)
-    result = dg.from_table(SenzorData, table_data, header)
 
     with pytest.raises(ValueError):
         result = dg.table_to_item(SenzorData, table_data, header, transpose=True)
@@ -52,8 +51,6 @@ def test_single_item():
 
     header = ["temperatures", "timestamps", "humidity"]
     result = dg.table_to_item(SenzorData, table_data, header, transpose=True)
-    check_fields(result, ref)
-    result = dg.from_table(SenzorData, table_data, header, transpose=True)
     check_fields(result, ref)
 
     with pytest.raises(ValueError):
@@ -97,10 +94,6 @@ def test_multi_item():
     for res, ref in zip(result, refs):
         check_fields(res, ref)
 
-    result = dg.from_table(SenzorData, table_data, header, item_per_row=True)
-    for res, ref in zip(result, refs):
-        check_fields(res, ref)
-
     table_data = [
         [7.4, 5.4],
         ["1Dec2022", "2Dec2022"],
@@ -109,12 +102,6 @@ def test_multi_item():
 
     header = ["temperature", "timestamp", "humidity"]
     result = dg.table_to_items(SenzorData, table_data, header, transpose=True)
-    for res, ref in zip(result, refs):
-        check_fields(res, ref)
-
-    result = dg.from_table(
-        SenzorData, table_data, header, transpose=True, item_per_row=True
-    )
     for res, ref in zip(result, refs):
         check_fields(res, ref)
 

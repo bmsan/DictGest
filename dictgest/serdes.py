@@ -106,6 +106,8 @@ def from_dict(
         dictionary data to be converted to target type
     type_mappings, optional
         custom conversion mapping for datatypess, by default None
+    routing, optional
+        custom conversion routing for fieldnames, see `Route`
     convert_types, optional
         if target fields should be converted to typing hint types.
 
@@ -152,7 +154,34 @@ def table_to_item(
     type_mappings: TypeConverterMap = default_convertor,
     routing: Union[Route, dict[type, Route], Chart] = None,
     convert_types: bool = True,
+    # pylint: disable=R0913
 ) -> T:
+    """Converts a table (2d structure) to the desired target type.
+        The table columns are regarded as target fields and the
+        field names are given in the header parameter.
+    Parameters
+    ----------
+    target
+        Target conversion type
+    data
+        2d table (nested lists) that will be converted
+    header
+        column names of the 2d table
+    transpose
+        switch rows with columns(eg: first row becomes first column and viceversa)
+    type_mappings, optional
+        custom conversion mapping for datatypess, by default None
+    routing, optional
+        custom conversion routing for fieldnames, see `Route`
+    convert_types, optional
+        if target fields should be converted to typing hint types.
+
+    Returns
+    -------
+        The converted datatype
+
+    """
+
     if transpose:
         if len(data) != len(header):
             raise ValueError(
@@ -185,7 +214,34 @@ def table_to_items(
     type_mappings: TypeConverterMap = default_convertor,
     routing: Union[Route, dict[type, Route], Chart] = None,
     convert_types: bool = True,
+    # pylint: disable=R0913
 ) -> Iterable[T]:
+    """Converts a table (2d structure) to a list of items of the desired target type.
+        Each table row is regarded as an item to be converted.
+        The field names are given in the header parameter.
+
+    Parameters
+    ----------
+    target
+        Target conversion type
+    data
+        2d table (nested lists) that will be converted
+    header
+        column names of the 2d table
+    transpose
+        switch rows with columns(eg: first row becomes first column and viceversa)
+    type_mappings, optional
+        custom conversion mapping for datatypess, by default None
+    routing, optional
+        custom conversion routing for fieldnames, see `Route`
+    convert_types, optional
+        if target fields should be converted to typing hint types.
+
+    Returns
+    -------
+        The converted datatype
+
+    """
     for row_idx, row in enumerate(_get_row(data, transpose)):
         if len(row) != len(header):
             raise ValueError(
@@ -200,23 +256,3 @@ def table_to_items(
             routing=routing,
             convert_types=convert_types,
         )
-
-
-def from_table(
-    target: type[T],
-    data: list[list],
-    header: list[str],
-    transpose: bool = False,
-    item_per_row: bool = False,
-    type_mappings: TypeConverterMap = default_convertor,
-    routing: Union[Route, dict[type, Route], Chart] = None,
-    convert_types: bool = True,
-) -> Union[T, Iterable[T]]:
-
-    if item_per_row:
-        return table_to_items(
-            target, data, header, transpose, type_mappings, routing, convert_types
-        )
-    return table_to_item(
-        target, data, header, transpose, type_mappings, routing, convert_types
-    )
