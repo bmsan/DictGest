@@ -274,6 +274,8 @@ And our desired target structure could look like this:
             humidity: list[float]
 ```
 
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/table2d.PNG?raw=true)
+
 In this example we would like each data column to be  treated as a field of the target type.
 To ingest our data into our target type we can use `table_to_item` following:
 
@@ -285,7 +287,11 @@ To ingest our data into our target type we can use `table_to_item` following:
 
 ### Transposing data
 The operation can be also be performed row wise by using the `transpose = True` flag.
+
+![](https://github.com/bmsan/DictGest/blob/main/docs/source/table2d_transpose.PNG?raw=true)
+
 So given
+
 ```py
     header = ["humidity", "temperatures", "timestamps"]
     table_data_transposed = [
